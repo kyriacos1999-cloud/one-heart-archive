@@ -1,8 +1,12 @@
 import { useState } from "react";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
+import { Calendar } from "./ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import {
   Select,
   SelectContent,
@@ -10,17 +14,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { cn } from "@/lib/utils";
 import HeartIcon from "./HeartIcon";
 
 const AddHeartForm = () => {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [message, setMessage] = useState("");
-  const [date] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState<Date>(new Date());
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real implementation, this would handle payment and submission
     console.log({ name, category, message, date });
   };
 
@@ -69,16 +73,30 @@ const AddHeartForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="date" className="text-sm font-medium">
-              Date
-            </Label>
-            <Input
-              id="date"
-              type="date"
-              value={date}
-              className="bg-background"
-              readOnly
-            />
+            <Label className="text-sm font-medium">Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal bg-background",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-popover" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(d) => d && setDate(d)}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="space-y-2">
