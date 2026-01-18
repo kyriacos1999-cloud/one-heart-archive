@@ -44,7 +44,7 @@ const HeartWall = () => {
         </div>
         
         <p className="text-center mt-12 text-muted-foreground text-sm font-light tracking-wide">
-          This wall closes permanently at 100,000 hearts.
+          This wall closes permanently at 1,000,000 hearts.
         </p>
       </div>
     </section>
