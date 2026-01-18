@@ -20,7 +20,7 @@ const HeartCard = ({ name, category, className, style }: HeartCardProps) => {
   return (
     <div
       className={cn(
-        "heart-card rounded-sm p-3 flex flex-col items-center justify-center text-center transition-all duration-300 aspect-square",
+        "heart-card rounded-sm p-4 flex flex-col items-center justify-center text-center transition-all duration-300",
         className
       )}
       style={style}
