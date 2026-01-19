@@ -4,30 +4,30 @@ import HeartCard from "./HeartCard";
 import { Button } from "./ui/button";
 
 const sampleHearts = [
-  { name: "Emma & James", category: "romantic" },
-  { name: "For Mom", category: "family" },
-  { name: "A.K.", category: "self" },
-  { name: "The Johnsons", category: "family" },
-  { name: "Sarah + Lily", category: "friendship" },
-  { name: "In memory of Dad", category: "memory" },
-  { name: "To my future self", category: "self" },
-  { name: "M & R", category: "romantic" },
-  { name: "The hiking crew", category: "friendship" },
-  { name: "Nana Rose", category: "memory" },
-  { name: "Leo", category: "self" },
-  { name: "Chen Family", category: "family" },
-  { name: "J + K Forever", category: "romantic" },
-  { name: "Best friends since '09", category: "friendship" },
-  { name: "Uncle Tom", category: "memory" },
-  { name: "David & Sofia", category: "romantic" },
-  { name: "My children", category: "family" },
-  { name: "L.M.", category: "self" },
-  { name: "The coffee club", category: "friendship" },
-  { name: "For Grandpa", category: "memory" },
-  { name: "Always, Anna", category: "romantic" },
-  { name: "Team forever", category: "friendship" },
-  { name: "Marcus", category: "self" },
-  { name: "The Garcias", category: "family" },
+  { name: "Emma & James", category: "romantic", message: "Together forever, through every storm and every sunny day." },
+  { name: "For Mom", category: "family", message: "Thank you for everything. Your love guides me every day." },
+  { name: "A.K.", category: "self", message: "A reminder to always believe in myself." },
+  { name: "The Johnsons", category: "family", message: "Family is everything. We stick together no matter what." },
+  { name: "Sarah + Lily", category: "friendship", message: "Best friends since kindergarten. Nothing can break this bond." },
+  { name: "In memory of Dad", category: "memory", message: "Gone but never forgotten. Your wisdom lives on." },
+  { name: "To my future self", category: "self", message: "Keep going. You're stronger than you know." },
+  { name: "M & R", category: "romantic", message: "Every moment with you is a gift." },
+  { name: "The hiking crew", category: "friendship", message: "Miles of trails, years of memories." },
+  { name: "Nana Rose", category: "memory", message: "Your garden still blooms, just like your love." },
+  { name: "Leo", category: "self", message: "Embrace who you are." },
+  { name: "Chen Family", category: "family", message: "祝我们的家庭永远幸福" },
+  { name: "J + K Forever", category: "romantic", message: "From our first date to forever." },
+  { name: "Best friends since '09", category: "friendship", message: "15 years and counting." },
+  { name: "Uncle Tom", category: "memory", message: "Your laughter echoes in every gathering." },
+  { name: "David & Sofia", category: "romantic", message: "Two hearts, one beautiful journey." },
+  { name: "My children", category: "family", message: "You are my greatest achievement." },
+  { name: "L.M.", category: "self", message: "Learning to love myself, one day at a time." },
+  { name: "The coffee club", category: "friendship", message: "Same table, same friends, endless support." },
+  { name: "For Grandpa", category: "memory", message: "Your stories live on. We miss you dearly." },
+  { name: "Always, Anna", category: "romantic", message: "My heart belongs to you, always." },
+  { name: "Team forever", category: "friendship", message: "Work brought us together, friendship keeps us close." },
+  { name: "Marcus", category: "self", message: "This is my year. Watch me grow." },
+  { name: "The Garcias", category: "family", message: "Amor, respeto, y unidad." },
 ];
 
 const HeartWall = () => {
@@ -40,6 +40,7 @@ const HeartWall = () => {
               key={index}
               name={heart.name}
               category={heart.category}
+              message={heart.message}
               className="animate-fade-in"
               style={{ animationDelay: `${index * 50}ms` } as React.CSSProperties}
             />
