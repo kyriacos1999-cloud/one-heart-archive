@@ -1,4 +1,7 @@
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import HeartCard from "./HeartCard";
+import { Button } from "./ui/button";
 
 const sampleHearts = [
   { name: "Emma & James", category: "romantic" },
@@ -43,7 +46,16 @@ const HeartWall = () => {
           ))}
         </div>
         
-        <p className="text-center mt-12 text-muted-foreground text-sm font-light tracking-wide">
+        <div className="text-center mt-10">
+          <Button asChild variant="outline" className="gap-2">
+            <Link to="/hearts">
+              View All Hearts
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </Button>
+        </div>
+        
+        <p className="text-center mt-8 text-muted-foreground text-sm font-light tracking-wide">
           This wall closes permanently at 1,000,000 hearts.
         </p>
       </div>
