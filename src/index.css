@@ -44,6 +44,18 @@
     --text-serif: 'Playfair Display', Georgia, serif;
     --text-sans: 'Inter', system-ui, sans-serif;
     
+    /* Category heart colors */
+    --heart-romantic: 350 60% 65%;
+    --heart-romantic-muted: 350 40% 90%;
+    --heart-family: 35 80% 55%;
+    --heart-family-muted: 35 50% 88%;
+    --heart-friendship: 200 70% 55%;
+    --heart-friendship-muted: 200 50% 88%;
+    --heart-memory: 270 50% 70%;
+    --heart-memory-muted: 270 40% 90%;
+    --heart-self: 140 30% 55%;
+    --heart-self-muted: 140 25% 88%;
+    
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -85,6 +97,18 @@
     
     --heart-rose: 0 30% 75%;
     --heart-rose-muted: 0 20% 30%;
+    
+    /* Category heart colors (dark mode) */
+    --heart-romantic: 350 50% 60%;
+    --heart-romantic-muted: 350 30% 25%;
+    --heart-family: 35 60% 50%;
+    --heart-family-muted: 35 30% 22%;
+    --heart-friendship: 200 55% 50%;
+    --heart-friendship-muted: 200 30% 22%;
+    --heart-memory: 270 40% 60%;
+    --heart-memory-muted: 270 25% 25%;
+    --heart-self: 140 25% 50%;
+    --heart-self-muted: 140 20% 22%;
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
