@@ -54,6 +54,16 @@ export default {
         heart: {
           rose: "hsl(var(--heart-rose))",
           muted: "hsl(var(--heart-rose-muted))",
+          romantic: "hsl(var(--heart-romantic))",
+          "romantic-muted": "hsl(var(--heart-romantic-muted))",
+          family: "hsl(var(--heart-family))",
+          "family-muted": "hsl(var(--heart-family-muted))",
+          friendship: "hsl(var(--heart-friendship))",
+          "friendship-muted": "hsl(var(--heart-friendship-muted))",
+          memory: "hsl(var(--heart-memory))",
+          "memory-muted": "hsl(var(--heart-memory-muted))",
+          self: "hsl(var(--heart-self))",
+          "self-muted": "hsl(var(--heart-self-muted))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
