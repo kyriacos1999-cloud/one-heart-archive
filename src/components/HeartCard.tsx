@@ -12,6 +12,7 @@ interface HeartCardProps {
   name: string;
   category: string;
   message?: string;
+  date?: string;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -57,7 +58,7 @@ const categoryColors: Record<string, { bg: string; border: string; hover: string
   },
 };
 
-const HeartCard = ({ name, category, message, className, style }: HeartCardProps) => {
+const HeartCard = ({ name, category, message, date, className, style }: HeartCardProps) => {
   const [open, setOpen] = useState(false);
   const colors = categoryColors[category] || categoryColors.romantic;
 
@@ -93,6 +94,11 @@ const HeartCard = ({ name, category, message, className, style }: HeartCardProps
             <p className="text-xs text-muted-foreground">
               {categoryLabels[category] || category}
             </p>
+            {date && (
+              <p className="text-xs text-muted-foreground/70 mt-1">
+                {date}
+              </p>
+            )}
           </DialogHeader>
           <div className="py-4">
             <p className="text-center text-foreground/90 font-light leading-relaxed">

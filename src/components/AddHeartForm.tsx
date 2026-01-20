@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import GooglePayButton from "@google-pay/button-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
@@ -16,16 +17,29 @@ import {
 } from "./ui/select";
 import { cn } from "@/lib/utils";
 import HeartIcon from "./HeartIcon";
+import { toast } from "sonner";
 
 const AddHeartForm = () => {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [message, setMessage] = useState("");
   const [date, setDate] = useState<Date>(new Date());
+  const [isFormValid, setIsFormValid] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log({ name, category, message, date });
+  const validateForm = () => {
+    const valid = name.trim() !== "" && category !== "";
+    setIsFormValid(valid);
+    return valid;
+  };
+
+  const handlePaymentSuccess = (paymentData: google.payments.api.PaymentData) => {
+    console.log("Payment successful:", paymentData);
+    toast.success("Heart added successfully! 💕");
+    // Reset form
+    setName("");
+    setCategory("");
+    setMessage("");
+    setDate(new Date());
   };
 
   return (
@@ -38,7 +52,7 @@ const AddHeartForm = () => {
           </h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-medium">
               Name(s)
@@ -48,7 +62,11 @@ const AddHeartForm = () => {
               type="text"
               placeholder="Emma & James"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                validateForm();
+              }}
+              onBlur={validateForm}
               className="bg-background"
               required
             />
@@ -58,7 +76,13 @@ const AddHeartForm = () => {
             <Label htmlFor="category" className="text-sm font-medium">
               Category
             </Label>
-            <Select value={category} onValueChange={setCategory} required>
+            <Select 
+              value={category} 
+              onValueChange={(value) => {
+                setCategory(value);
+                setTimeout(validateForm, 0);
+              }}
+            >
               <SelectTrigger className="bg-background">
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
@@ -116,14 +140,63 @@ const AddHeartForm = () => {
             </p>
           </div>
 
-          <Button
-            type="submit"
-            className="w-full py-6 text-base font-medium tracking-wide mt-4"
-            size="lg"
-          >
-            Confirm & Add Heart — €1
-          </Button>
-        </form>
+          <div className="pt-4">
+            <p className="text-center text-sm text-muted-foreground mb-4">
+              Add your heart for €1
+            </p>
+            <div className="flex justify-center">
+              <GooglePayButton
+                environment="TEST"
+                paymentRequest={{
+                  apiVersion: 2,
+                  apiVersionMinor: 0,
+                  allowedPaymentMethods: [
+                    {
+                      type: "CARD",
+                      parameters: {
+                        allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+                        allowedCardNetworks: ["MASTERCARD", "VISA"],
+                      },
+                      tokenizationSpecification: {
+                        type: "PAYMENT_GATEWAY",
+                        parameters: {
+                          gateway: "example",
+                          gatewayMerchantId: "exampleGatewayMerchantId",
+                        },
+                      },
+                    },
+                  ],
+                  merchantInfo: {
+                    merchantId: "BCR2DN4T7XKVEMB7",
+                    merchantName: "Heart Wall",
+                  },
+                  transactionInfo: {
+                    totalPriceStatus: "FINAL",
+                    totalPriceLabel: "Total",
+                    totalPrice: "1.00",
+                    currencyCode: "EUR",
+                    countryCode: "IE",
+                  },
+                }}
+                onLoadPaymentData={handlePaymentSuccess}
+                onError={(error) => {
+                  console.error("Google Pay error:", error);
+                  toast.error("Payment failed. Please try again.");
+                }}
+                onClick={() => {
+                  if (!validateForm()) {
+                    toast.error("Please fill in all required fields");
+                    return;
+                  }
+                }}
+                buttonColor="black"
+                buttonType="pay"
+                buttonSizeMode="fill"
+                style={{ width: "100%", height: 48 }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
