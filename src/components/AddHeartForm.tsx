@@ -18,14 +18,17 @@ import {
 import { cn } from "@/lib/utils";
 import HeartIcon from "./HeartIcon";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const AddHeartForm = () => {
   const [name, setName] = useState("");
+  const [recipientEmail, setRecipientEmail] = useState("");
   const [category, setCategory] = useState("");
   const [message, setMessage] = useState("");
   const [date, setDate] = useState<Date>(new Date());
   const [isFormValid, setIsFormValid] = useState(false);
   const [applePayAvailable, setApplePayAvailable] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // Check if Apple Pay is available
@@ -42,15 +45,67 @@ const AddHeartForm = () => {
 
   const resetForm = () => {
     setName("");
+    setRecipientEmail("");
     setCategory("");
     setMessage("");
     setDate(new Date());
   };
 
-  const handlePaymentSuccess = (paymentData: google.payments.api.PaymentData) => {
+  const saveHeartAndNotify = async () => {
+    setIsSubmitting(true);
+    try {
+      // Save heart to database
+      const { error: insertError } = await supabase.from("hearts").insert({
+        name: name.trim(),
+        category,
+        message: message.trim() || null,
+        date: format(date, "yyyy-MM-dd"),
+        recipient_email: recipientEmail.trim() || null,
+      });
+
+      if (insertError) {
+        console.error("Error saving heart:", insertError);
+        toast.error("Failed to save heart. Please try again.");
+        return false;
+      }
+
+      // Send email notification if recipient email provided
+      if (recipientEmail.trim()) {
+        const { error: fnError } = await supabase.functions.invoke("send-heart-notification", {
+          body: {
+            recipientEmail: recipientEmail.trim(),
+            senderName: name.trim(),
+            category,
+            message: message.trim() || undefined,
+            date: format(date, "PPP"),
+          },
+        });
+
+        if (fnError) {
+          console.error("Error sending notification:", fnError);
+          // Don't fail the whole operation, heart was saved
+          toast.success("Heart added! (Email notification may be delayed)");
+        } else {
+          toast.success("Heart added and notification sent! 💕");
+        }
+      } else {
+        toast.success("Heart added successfully! 💕");
+      }
+
+      resetForm();
+      return true;
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Something went wrong. Please try again.");
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePaymentSuccess = async (paymentData: google.payments.api.PaymentData) => {
     console.log("Payment successful:", paymentData);
-    toast.success("Heart added successfully! 💕");
-    resetForm();
+    await saveHeartAndNotify();
   };
 
   const handleApplePay = async () => {
@@ -83,11 +138,10 @@ const AddHeartForm = () => {
       toast.info("Apple Pay requires merchant validation setup");
     };
 
-    session.onpaymentauthorized = (event: any) => {
+    session.onpaymentauthorized = async (event: any) => {
       console.log("Apple Pay authorized:", event.payment);
       session.completePayment(ApplePaySession.STATUS_SUCCESS);
-      toast.success("Heart added successfully! 💕");
-      resetForm();
+      await saveHeartAndNotify();
     };
 
     session.oncancel = () => {
@@ -125,6 +179,23 @@ const AddHeartForm = () => {
               className="bg-background"
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="recipientEmail" className="text-sm font-medium">
+              Recipient Email <span className="text-muted-foreground font-normal">(optional)</span>
+            </Label>
+            <Input
+              id="recipientEmail"
+              type="email"
+              placeholder="Send a notification to someone special"
+              value={recipientEmail}
+              onChange={(e) => setRecipientEmail(e.target.value)}
+              className="bg-background"
+            />
+            <p className="text-xs text-muted-foreground">
+              They'll receive a beautiful email letting them know a heart was added for them
+            </p>
           </div>
 
           <div className="space-y-2">
