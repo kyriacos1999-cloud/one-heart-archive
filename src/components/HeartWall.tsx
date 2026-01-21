@@ -1,7 +1,18 @@
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
 import HeartCard from "./HeartCard";
 import { Button } from "./ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+
+interface Heart {
+  id: string;
+  name: string;
+  category: string;
+  message: string | null;
+  date: string;
+}
 
 const sampleHearts = [
   { name: "Emma & James", category: "romantic", message: "Together forever, through every storm and every sunny day.", date: "January 14, 2024" },
@@ -10,32 +21,58 @@ const sampleHearts = [
   { name: "The Johnsons", category: "family", message: "Family is everything. We stick together no matter what.", date: "November 28, 2023" },
   { name: "Sarah + Lily", category: "friendship", message: "Best friends since kindergarten. Nothing can break this bond.", date: "February 14, 2024" },
   { name: "In memory of Dad", category: "memory", message: "Gone but never forgotten. Your wisdom lives on.", date: "April 3, 2023" },
-  { name: "To my future self", category: "self", message: "Keep going. You're stronger than you know.", date: "January 1, 2024" },
-  { name: "M & R", category: "romantic", message: "Every moment with you is a gift.", date: "June 15, 2023" },
-  { name: "The hiking crew", category: "friendship", message: "Miles of trails, years of memories.", date: "August 20, 2023" },
-  { name: "Nana Rose", category: "memory", message: "Your garden still blooms, just like your love.", date: "May 12, 2023" },
-  { name: "Leo", category: "self", message: "Embrace who you are.", date: "October 5, 2023" },
-  { name: "Chen Family", category: "family", message: "祝我们的家庭永远幸福", date: "February 10, 2024" },
-  { name: "J + K Forever", category: "romantic", message: "From our first date to forever.", date: "July 4, 2023" },
-  { name: "Best friends since '09", category: "friendship", message: "15 years and counting.", date: "September 15, 2023" },
-  { name: "Uncle Tom", category: "memory", message: "Your laughter echoes in every gathering.", date: "November 1, 2023" },
-  { name: "David & Sofia", category: "romantic", message: "Two hearts, one beautiful journey.", date: "February 28, 2024" },
-  { name: "My children", category: "family", message: "You are my greatest achievement.", date: "December 31, 2023" },
-  { name: "L.M.", category: "self", message: "Learning to love myself, one day at a time.", date: "January 20, 2024" },
-  { name: "The coffee club", category: "friendship", message: "Same table, same friends, endless support.", date: "October 15, 2023" },
-  { name: "For Grandpa", category: "memory", message: "Your stories live on. We miss you dearly.", date: "March 17, 2023" },
-  { name: "Always, Anna", category: "romantic", message: "My heart belongs to you, always.", date: "February 14, 2023" },
-  { name: "Team forever", category: "friendship", message: "Work brought us together, friendship keeps us close.", date: "July 20, 2023" },
-  { name: "Marcus", category: "self", message: "This is my year. Watch me grow.", date: "January 1, 2024" },
-  { name: "The Garcias", category: "family", message: "Amor, respeto, y unidad.", date: "December 24, 2023" },
 ];
 
 const HeartWall = () => {
+  const [dbHearts, setDbHearts] = useState<Heart[]>([]);
+
+  useEffect(() => {
+    const fetchHearts = async () => {
+      const { data, error } = await supabase
+        .from("hearts")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(18);
+      
+      if (!error && data) {
+        setDbHearts(data);
+      }
+    };
+
+    fetchHearts();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel("heartwall-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "hearts" },
+        (payload) => {
+          setDbHearts((prev) => [payload.new as Heart, ...prev].slice(0, 18));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const displayHearts = [
+    ...dbHearts.map((h) => ({
+      name: h.name,
+      category: h.category,
+      message: h.message || "",
+      date: format(new Date(h.date), "MMMM d, yyyy"),
+    })),
+    ...sampleHearts,
+  ].slice(0, 24);
+
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
-          {sampleHearts.map((heart, index) => (
+          {displayHearts.map((heart, index) => (
             <HeartCard
               key={index}
               name={heart.name}

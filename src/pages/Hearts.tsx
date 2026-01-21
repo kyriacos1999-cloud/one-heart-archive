@@ -1,9 +1,20 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Search } from "lucide-react";
 import HeartCard from "@/components/HeartCard";
 import Footer from "@/components/Footer";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+
+interface Heart {
+  id: string;
+  name: string;
+  category: string;
+  message: string | null;
+  date: string;
+  created_at: string;
+}
 
 const sampleHearts = [
   { name: "Emma & James", category: "romantic", message: "Together forever, through every storm and every sunny day. Our love story continues.", date: "January 14, 2024" },
@@ -12,44 +23,64 @@ const sampleHearts = [
   { name: "The Johnsons", category: "family", message: "Family is everything. We stick together no matter what.", date: "November 28, 2023" },
   { name: "Sarah + Lily", category: "friendship", message: "Best friends since kindergarten. Nothing can break this bond.", date: "February 14, 2024" },
   { name: "In memory of Dad", category: "memory", message: "Gone but never forgotten. Your wisdom lives on in everything I do.", date: "April 3, 2023" },
-  { name: "To my future self", category: "self", message: "Keep going. You're stronger than you know.", date: "January 1, 2024" },
-  { name: "M & R", category: "romantic", message: "Every moment with you is a gift.", date: "June 15, 2023" },
-  { name: "The hiking crew", category: "friendship", message: "Miles of trails, years of memories. Adventure awaits!", date: "August 20, 2023" },
-  { name: "Nana Rose", category: "memory", message: "Your garden still blooms, just like your love in our hearts.", date: "May 12, 2023" },
-  { name: "Leo", category: "self", message: "Embrace who you are.", date: "October 5, 2023" },
-  { name: "Chen Family", category: "family", message: "祝我们的家庭永远幸福 - Wishing our family eternal happiness.", date: "February 10, 2024" },
-  { name: "J + K Forever", category: "romantic", message: "From our first date to forever. You're my person.", date: "July 4, 2023" },
-  { name: "Best friends since '09", category: "friendship", message: "15 years and counting. Here's to many more adventures.", date: "September 15, 2023" },
-  { name: "Uncle Tom", category: "memory", message: "Your laughter echoes in every family gathering.", date: "November 1, 2023" },
-  { name: "David & Sofia", category: "romantic", message: "Two hearts, one beautiful journey.", date: "February 28, 2024" },
-  { name: "My children", category: "family", message: "You are my greatest achievement and my endless love.", date: "December 31, 2023" },
-  { name: "L.M.", category: "self", message: "Learning to love myself, one day at a time.", date: "January 20, 2024" },
-  { name: "The coffee club", category: "friendship", message: "Every Tuesday morning, same table, same friends, endless support.", date: "October 15, 2023" },
-  { name: "For Grandpa", category: "memory", message: "Your stories live on. We miss you dearly.", date: "March 17, 2023" },
-  { name: "Always, Anna", category: "romantic", message: "My heart belongs to you, always and forever.", date: "February 14, 2023" },
-  { name: "Team forever", category: "friendship", message: "Work brought us together, friendship keeps us close.", date: "July 20, 2023" },
-  { name: "Marcus", category: "self", message: "This is my year. Watch me grow.", date: "January 1, 2024" },
-  { name: "The Garcias", category: "family", message: "Amor, respeto, y unidad. Love, respect, and unity.", date: "December 24, 2023" },
-  { name: "Sophie & Ben", category: "romantic", message: "Found my soulmate in the most unexpected place.", date: "August 5, 2023" },
-  { name: "My siblings", category: "family", message: "Built-in best friends for life.", date: "November 15, 2023" },
-  { name: "R.T.", category: "self", message: "Healing is not linear, but I'm making progress.", date: "February 1, 2024" },
-  { name: "Book club buddies", category: "friendship", message: "More wine than books, more laughs than pages.", date: "September 1, 2023" },
-  { name: "In loving memory", category: "memory", message: "Forever in our hearts.", date: "June 1, 2023" },
-  { name: "K & M", category: "romantic", message: "Two souls, one heartbeat.", date: "March 14, 2024" },
-  { name: "The Williams", category: "family", message: "Generations of love, strength, and togetherness.", date: "October 20, 2023" },
-  { name: "Forever friends", category: "friendship", message: "Distance means nothing when someone means everything.", date: "December 10, 2023" },
 ];
 
 const Hearts = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [dbHearts, setDbHearts] = useState<Heart[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHearts = async () => {
+      const { data, error } = await supabase
+        .from("hearts")
+        .select("*")
+        .order("created_at", { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching hearts:", error);
+      } else {
+        setDbHearts(data || []);
+      }
+      setLoading(false);
+    };
+
+    fetchHearts();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel("hearts-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "hearts" },
+        (payload) => {
+          setDbHearts((prev) => [payload.new as Heart, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const allHearts = useMemo(() => {
+    const formattedDbHearts = dbHearts.map((h) => ({
+      name: h.name,
+      category: h.category,
+      message: h.message || "",
+      date: format(new Date(h.date), "MMMM d, yyyy"),
+    }));
+    return [...formattedDbHearts, ...sampleHearts];
+  }, [dbHearts]);
 
   const filteredHearts = useMemo(() => {
-    if (!searchQuery.trim()) return sampleHearts;
+    if (!searchQuery.trim()) return allHearts;
     const query = searchQuery.toLowerCase().trim();
-    return sampleHearts.filter((heart) =>
+    return allHearts.filter((heart) =>
       heart.name.toLowerCase().includes(query)
     );
-  }, [searchQuery]);
+  }, [searchQuery, allHearts]);
 
   return (
     <div className="min-h-screen bg-background">
