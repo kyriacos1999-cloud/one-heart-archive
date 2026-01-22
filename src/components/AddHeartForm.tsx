@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Apple } from "lucide-react";
-import GooglePayButton from "@google-pay/button-react";
+import { CalendarIcon, CreditCard } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
@@ -27,13 +26,20 @@ const AddHeartForm = () => {
   const [message, setMessage] = useState("");
   const [date, setDate] = useState<Date>(new Date());
   const [isFormValid, setIsFormValid] = useState(false);
-  const [applePayAvailable, setApplePayAvailable] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Check if Apple Pay is available
-    if ((window as any).ApplePaySession && (window as any).ApplePaySession.canMakePayments()) {
-      setApplePayAvailable(true);
+    // Check for payment success in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get("payment");
+    
+    if (paymentStatus === "success") {
+      toast.success("Payment successful! Your heart has been added 💕");
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (paymentStatus === "canceled") {
+      toast.info("Payment was canceled");
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
 
@@ -51,104 +57,39 @@ const AddHeartForm = () => {
     setDate(new Date());
   };
 
-  const saveHeartAndNotify = async () => {
-    setIsSubmitting(true);
-    try {
-      // Save heart to database
-      const { error: insertError } = await supabase.from("hearts").insert({
-        name: name.trim(),
-        category,
-        message: message.trim() || null,
-        date: format(date, "yyyy-MM-dd"),
-        recipient_email: recipientEmail.trim() || null,
-      });
-
-      if (insertError) {
-        console.error("Error saving heart:", insertError);
-        toast.error("Failed to save heart. Please try again.");
-        return false;
-      }
-
-      // Send email notification if recipient email provided
-      if (recipientEmail.trim()) {
-        const { error: fnError } = await supabase.functions.invoke("send-heart-notification", {
-          body: {
-            recipientEmail: recipientEmail.trim(),
-            senderName: name.trim(),
-            category,
-            message: message.trim() || undefined,
-            date: format(date, "PPP"),
-          },
-        });
-
-        if (fnError) {
-          console.error("Error sending notification:", fnError);
-          // Don't fail the whole operation, heart was saved
-          toast.success("Heart added! (Email notification may be delayed)");
-        } else {
-          toast.success("Heart added and notification sent! 💕");
-        }
-      } else {
-        toast.success("Heart added successfully! 💕");
-      }
-
-      resetForm();
-      return true;
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error("Something went wrong. Please try again.");
-      return false;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handlePaymentSuccess = async (paymentData: google.payments.api.PaymentData) => {
-    console.log("Payment successful:", paymentData);
-    await saveHeartAndNotify();
-  };
-
-  const handleApplePay = async () => {
+  const handleStripeCheckout = async () => {
     if (!validateForm()) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    const ApplePaySession = (window as any).ApplePaySession;
-    if (!ApplePaySession) {
-      toast.error("Apple Pay is not available on this device");
-      return;
+    setIsSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-heart-payment", {
+        body: {
+          name: name.trim(),
+          category,
+          message: message.trim() || "",
+          date: format(date, "yyyy-MM-dd"),
+          recipientEmail: recipientEmail.trim() || "",
+        },
+      });
+
+      if (error) {
+        console.error("Error creating payment:", error);
+        toast.error("Failed to start payment. Please try again.");
+        return;
+      }
+
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const request = {
-      countryCode: "IE",
-      currencyCode: "EUR",
-      supportedNetworks: ["visa", "masterCard", "amex"],
-      merchantCapabilities: ["supports3DS"],
-      total: { label: "Heart Wall", amount: "1.00" },
-    };
-
-    const session = new ApplePaySession(3, request);
-
-    session.onvalidatemerchant = (event: any) => {
-      // In production, you'd validate with your server
-      console.log("Merchant validation:", event.validationURL);
-      // For demo purposes, we'll complete the session
-      session.abort();
-      toast.info("Apple Pay requires merchant validation setup");
-    };
-
-    session.onpaymentauthorized = async (event: any) => {
-      console.log("Apple Pay authorized:", event.payment);
-      session.completePayment(ApplePaySession.STATUS_SUCCESS);
-      await saveHeartAndNotify();
-    };
-
-    session.oncancel = () => {
-      console.log("Apple Pay cancelled");
-    };
-
-    session.begin();
   };
 
   return (
@@ -270,73 +211,14 @@ const AddHeartForm = () => {
             <p className="text-center text-sm text-muted-foreground mb-4">
               Add your heart for €1
             </p>
-            <div className="flex flex-col gap-3">
-              <GooglePayButton
-                environment="TEST"
-                paymentRequest={{
-                  apiVersion: 2,
-                  apiVersionMinor: 0,
-                  allowedPaymentMethods: [
-                    {
-                      type: "CARD",
-                      parameters: {
-                        allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
-                        allowedCardNetworks: ["MASTERCARD", "VISA"],
-                      },
-                      tokenizationSpecification: {
-                        type: "PAYMENT_GATEWAY",
-                        parameters: {
-                          gateway: "example",
-                          gatewayMerchantId: "exampleGatewayMerchantId",
-                        },
-                      },
-                    },
-                  ],
-                  merchantInfo: {
-                    merchantId: "BCR2DN4T7XKVEMB7",
-                    merchantName: "Heart Wall",
-                  },
-                  transactionInfo: {
-                    totalPriceStatus: "FINAL",
-                    totalPriceLabel: "Total",
-                    totalPrice: "1.00",
-                    currencyCode: "EUR",
-                    countryCode: "IE",
-                  },
-                }}
-                onLoadPaymentData={handlePaymentSuccess}
-                onError={(error) => {
-                  console.error("Google Pay error:", error);
-                  toast.error("Payment failed. Please try again.");
-                }}
-                onClick={() => {
-                  if (!validateForm()) {
-                    toast.error("Please fill in all required fields");
-                    return;
-                  }
-                }}
-                buttonColor="black"
-                buttonType="pay"
-                buttonSizeMode="fill"
-                style={{ width: "100%", height: 48 }}
-              />
-              
-              {applePayAvailable && (
-                <Button
-                  onClick={handleApplePay}
-                  className="w-full h-12 bg-black hover:bg-black/90 text-white font-medium rounded-md flex items-center justify-center gap-2"
-                >
-                  <Apple className="w-5 h-5" />
-                  Pay with Apple Pay
-                </Button>
-              )}
-              
-              {!applePayAvailable && (
-                <p className="text-xs text-center text-muted-foreground">
-                  Apple Pay is available on Safari with compatible devices
-                </p>
-              )}
-            </div>
+            <Button
+              onClick={handleStripeCheckout}
+              disabled={isSubmitting}
+              className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md flex items-center justify-center gap-2"
+            >
+              <CreditCard className="w-5 h-5" />
+              {isSubmitting ? "Processing..." : "Pay €1 with Card"}
+            </Button>
           </div>
         </div>
       </div>
