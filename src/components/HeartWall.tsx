@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import HeartCard from "./HeartCard";
 import { Button } from "./ui/button";
+import { Progress } from "./ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
@@ -23,8 +24,12 @@ const sampleHearts = [
   { name: "In memory of Dad", category: "memory", message: "Gone but never forgotten. Your wisdom lives on.", date: "April 3, 2023" },
 ];
 
+const GOAL = 1_000_000;
+
 const HeartWall = () => {
   const [dbHearts, setDbHearts] = useState<Heart[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [animatedCount, setAnimatedCount] = useState(0);
 
   useEffect(() => {
     const fetchHearts = async () => {
@@ -39,7 +44,19 @@ const HeartWall = () => {
       }
     };
 
+    const fetchCount = async () => {
+      const { count, error } = await supabase
+        .from("hearts")
+        .select("*", { count: "exact", head: true });
+      
+      if (!error && count !== null) {
+        // Add sample hearts to the count for display
+        setTotalCount(count + sampleHearts.length);
+      }
+    };
+
     fetchHearts();
+    fetchCount();
 
     // Subscribe to realtime updates
     const channel = supabase
@@ -49,6 +66,7 @@ const HeartWall = () => {
         { event: "INSERT", schema: "public", table: "hearts" },
         (payload) => {
           setDbHearts((prev) => [payload.new as Heart, ...prev].slice(0, 18));
+          setTotalCount((prev) => prev + 1);
         }
       )
       .subscribe();
@@ -57,6 +75,28 @@ const HeartWall = () => {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  // Animate the counter
+  useEffect(() => {
+    if (totalCount === 0) return;
+    
+    const duration = 1500;
+    const steps = 60;
+    const stepValue = totalCount / steps;
+    let current = 0;
+    
+    const timer = setInterval(() => {
+      current += stepValue;
+      if (current >= totalCount) {
+        setAnimatedCount(totalCount);
+        clearInterval(timer);
+      } else {
+        setAnimatedCount(Math.floor(current));
+      }
+    }, duration / steps);
+
+    return () => clearInterval(timer);
+  }, [totalCount]);
 
   const displayHearts = [
     ...dbHearts.map((h) => ({
@@ -68,9 +108,35 @@ const HeartWall = () => {
     ...sampleHearts,
   ].slice(0, 24);
 
+  const progressPercentage = Math.min((totalCount / GOAL) * 100, 100);
+
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
+        {/* Progress Counter */}
+        <div className="mb-12 text-center">
+          <div className="inline-block">
+            <p className="text-sm text-muted-foreground mb-2 tracking-wide">
+              Hearts added
+            </p>
+            <p className="font-serif text-4xl sm:text-5xl font-medium text-foreground mb-4">
+              {animatedCount.toLocaleString()}
+              <span className="text-muted-foreground/50 text-2xl sm:text-3xl ml-2">
+                / {GOAL.toLocaleString()}
+              </span>
+            </p>
+            <div className="w-64 sm:w-80 mx-auto">
+              <Progress 
+                value={progressPercentage} 
+                className="h-2 bg-muted"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {(100 - progressPercentage).toFixed(4)}% remaining until the wall closes
+            </p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
           {displayHearts.map((heart, index) => (
             <HeartCard
@@ -93,10 +159,6 @@ const HeartWall = () => {
             </Link>
           </Button>
         </div>
-        
-        <p className="text-center mt-8 text-muted-foreground text-sm font-light tracking-wide">
-          This wall closes permanently at 1,000,000 hearts.
-        </p>
       </div>
     </section>
   );
