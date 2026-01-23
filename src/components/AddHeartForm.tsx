@@ -71,8 +71,9 @@ const AddHeartForm = () => {
     // Check for payment success in URL
     const urlParams = new URLSearchParams(window.location.search);
     const paymentStatus = urlParams.get("payment");
+    const sessionId = urlParams.get("session_id");
     
-    if (paymentStatus === "success") {
+    if (paymentStatus === "success" && sessionId) {
       // Fire confetti celebration
       fireConfetti();
       toast.success("Payment successful! Your heart has been added 💕", {
@@ -81,13 +82,31 @@ const AddHeartForm = () => {
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
       
-      // Scroll to heart wall after a short delay
-      setTimeout(() => {
-        const heartWall = document.querySelector('.grid.grid-cols-3');
-        if (heartWall) {
-          heartWall.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Fetch the heart ID and redirect to share page
+      const fetchHeartAndRedirect = async () => {
+        // Wait a moment for the webhook to process
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        try {
+          const { data, error } = await supabase.functions.invoke("get-heart-by-session", {
+            body: { sessionId },
+          });
+          
+          if (!error && data?.heartId) {
+            // Redirect to share page
+            window.location.href = `/heart/${data.heartId}`;
+          }
+        } catch (err) {
+          console.error("Error fetching heart:", err);
+          // Fallback: scroll to heart wall
+          const heartWall = document.querySelector('.grid.grid-cols-3');
+          if (heartWall) {
+            heartWall.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
         }
-      }, 1000);
+      };
+      
+      fetchHeartAndRedirect();
     } else if (paymentStatus === "canceled") {
       toast.info("Payment was canceled");
       window.history.replaceState({}, document.title, window.location.pathname);
