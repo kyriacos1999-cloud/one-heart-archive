@@ -18,6 +18,45 @@ import { cn } from "@/lib/utils";
 import HeartIcon from "./HeartIcon";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import confetti from "canvas-confetti";
+
+const fireConfetti = () => {
+  const duration = 3000;
+  const end = Date.now() + duration;
+
+  const colors = ['#e11d48', '#f43f5e', '#fb7185', '#fda4af'];
+
+  const frame = () => {
+    confetti({
+      particleCount: 3,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 },
+      colors,
+    });
+    confetti({
+      particleCount: 3,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 },
+      colors,
+    });
+
+    if (Date.now() < end) {
+      requestAnimationFrame(frame);
+    }
+  };
+
+  frame();
+
+  // Big burst in the middle
+  confetti({
+    particleCount: 100,
+    spread: 100,
+    origin: { y: 0.6 },
+    colors,
+  });
+};
 
 const AddHeartForm = () => {
   const [name, setName] = useState("");
@@ -34,9 +73,21 @@ const AddHeartForm = () => {
     const paymentStatus = urlParams.get("payment");
     
     if (paymentStatus === "success") {
-      toast.success("Payment successful! Your heart has been added 💕");
+      // Fire confetti celebration
+      fireConfetti();
+      toast.success("Payment successful! Your heart has been added 💕", {
+        duration: 5000,
+      });
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Scroll to heart wall after a short delay
+      setTimeout(() => {
+        const heartWall = document.querySelector('.grid.grid-cols-3');
+        if (heartWall) {
+          heartWall.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 1000);
     } else if (paymentStatus === "canceled") {
       toast.info("Payment was canceled");
       window.history.replaceState({}, document.title, window.location.pathname);
