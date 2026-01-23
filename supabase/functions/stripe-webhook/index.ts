@@ -50,13 +50,14 @@ serve(async (req) => {
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
       );
 
-      // Save heart to database
+      // Save heart to database with session ID for sharing
       const { error: insertError } = await supabase.from("hearts").insert({
         name,
         category,
         message: message || null,
         date,
         recipient_email: recipientEmail || null,
+        stripe_session_id: session.id,
       });
 
       if (insertError) {

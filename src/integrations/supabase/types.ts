@@ -23,6 +23,7 @@ export type Database = {
           message: string | null
           name: string
           recipient_email: string | null
+          stripe_session_id: string | null
         }
         Insert: {
           category: string
@@ -32,6 +33,7 @@ export type Database = {
           message?: string | null
           name: string
           recipient_email?: string | null
+          stripe_session_id?: string | null
         }
         Update: {
           category?: string
@@ -41,6 +43,7 @@ export type Database = {
           message?: string | null
           name?: string
           recipient_email?: string | null
+          stripe_session_id?: string | null
         }
         Relationships: []
       }
