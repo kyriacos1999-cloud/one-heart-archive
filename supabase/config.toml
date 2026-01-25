@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.get-heart-by-session]
 verify_jwt = false
+
+[functions.reset-demo-hearts]
+verify_jwt = false
