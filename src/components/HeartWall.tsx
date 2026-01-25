@@ -45,14 +45,21 @@ const HeartWall = () => {
     };
 
     const fetchCount = async () => {
-      const { count, error } = await supabase
+      // Get demo count
+      const { data: demoData } = await supabase
+        .from("demo_config")
+        .select("demo_heart_count")
+        .eq("id", "main")
+        .single();
+      
+      // Get real hearts count
+      const { count: realCount } = await supabase
         .from("hearts")
         .select("*", { count: "exact", head: true });
       
-      if (!error && count !== null) {
-        // Add sample hearts to the count for display
-        setTotalCount(count + sampleHearts.length);
-      }
+      const demoCount = demoData?.demo_heart_count || 74026;
+      const total = demoCount + (realCount || 0);
+      setTotalCount(total);
     };
 
     fetchHearts();
