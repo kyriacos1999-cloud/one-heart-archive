@@ -24,11 +24,11 @@ const categoryLabels: Record<string, string> = {
 };
 
 const categoryColors: Record<string, string> = {
-  romantic: "from-rose-500 to-pink-500",
-  family: "from-amber-500 to-orange-500",
-  friendship: "from-violet-500 to-purple-500",
-  memory: "from-slate-500 to-gray-500",
-  self: "from-emerald-500 to-teal-500",
+  romantic: "text-[hsl(350,60%,65%)]",
+  family: "text-[hsl(35,80%,55%)]",
+  friendship: "text-[hsl(200,70%,55%)]",
+  memory: "text-[hsl(270,50%,70%)]",
+  self: "text-[hsl(140,30%,55%)]",
 };
 
 const HeartShare = () => {
@@ -36,6 +36,8 @@ const HeartShare = () => {
   const [heart, setHeart] = useState<Heart | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [showContent, setShowContent] = useState(false);
+  const [showShare, setShowShare] = useState(false);
 
   useEffect(() => {
     const fetchHeart = async () => {
@@ -58,16 +60,31 @@ const HeartShare = () => {
     fetchHeart();
   }, [id]);
 
+  // Intentional pause before revealing content
+  useEffect(() => {
+    if (!loading && heart) {
+      // Let the page breathe before showing content
+      const contentTimer = setTimeout(() => setShowContent(true), 800);
+      // Delay share options further
+      const shareTimer = setTimeout(() => setShowShare(true), 2000);
+      
+      return () => {
+        clearTimeout(contentTimer);
+        clearTimeout(shareTimer);
+      };
+    }
+  }, [loading, heart]);
+
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const shareText = heart
-    ? `💕 ${heart.name} added a heart to the Heart Wall${heart.message ? `: "${heart.message}"` : ""}`
-    : "Check out this heart on the Heart Wall!";
+    ? `${heart.name} — a heart in the archive.`
+    : "";
 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
-      toast.success("Link copied to clipboard!");
+      toast.success("Link copied");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Failed to copy link");
@@ -87,8 +104,8 @@ const HeartShare = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse">
-          <HeartIcon className="w-16 h-16 text-muted-foreground" />
+        <div className="animate-breathe">
+          <HeartIcon className="w-12 h-12 text-muted-foreground/50" />
         </div>
       </div>
     );
@@ -97,13 +114,13 @@ const HeartShare = () => {
   if (!heart) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
-        <HeartIcon className="w-16 h-16 text-muted-foreground mb-4" />
+        <HeartIcon className="w-12 h-12 text-muted-foreground mb-6" />
         <h1 className="font-serif text-2xl text-foreground mb-2">Heart not found</h1>
-        <p className="text-muted-foreground mb-6">This heart may have been removed or doesn't exist.</p>
-        <Button asChild variant="outline">
+        <p className="text-muted-foreground mb-8">This heart may have been removed.</p>
+        <Button asChild variant="ghost">
           <Link to="/">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Heart Wall
+            Return
           </Link>
         </Button>
       </div>
@@ -112,91 +129,124 @@ const HeartShare = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="px-4 py-4 border-b border-border/50">
+      {/* Header - minimal */}
+      <header className="px-4 py-4">
         <div className="max-w-4xl mx-auto">
-          <Button asChild variant="ghost" size="sm">
+          <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
             <Link to="/">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Heart Wall
+              Back
             </Link>
           </Button>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="px-4 py-12 sm:py-20">
-        <div className="max-w-lg mx-auto text-center">
-          {/* Heart Icon with gradient */}
-          <div
-            className={`w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-8 rounded-full bg-gradient-to-br ${categoryColors[heart.category] || categoryColors.romantic} p-6 shadow-lg`}
+      <main className="px-4 py-16 sm:py-24">
+        <div className="max-w-md mx-auto text-center">
+          
+          {/* Confirmation line - appears first */}
+          <p 
+            className={`text-sm text-muted-foreground mb-10 transition-opacity duration-700 ${
+              showContent ? "opacity-100" : "opacity-0"
+            }`}
           >
-            <HeartIcon className="w-full h-full text-white drop-shadow-md" />
+            Your heart is here now. It stays.
+          </p>
+
+          {/* Heart Icon - muted, not celebratory */}
+          <div
+            className={`mb-8 transition-all duration-700 delay-200 ${
+              showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            }`}
+          >
+            <HeartIcon 
+              className={`w-16 h-16 sm:w-20 sm:h-20 mx-auto ${categoryColors[heart.category] || categoryColors.romantic}`} 
+            />
           </div>
 
-          {/* Category Badge */}
-          <span className="inline-block px-4 py-1.5 bg-muted text-muted-foreground text-sm rounded-full mb-4">
+          {/* Category - subtle */}
+          <span 
+            className={`inline-block text-xs text-muted-foreground tracking-widest uppercase mb-4 transition-opacity duration-500 delay-300 ${
+              showContent ? "opacity-100" : "opacity-0"
+            }`}
+          >
             {categoryLabels[heart.category] || heart.category}
           </span>
 
           {/* Name */}
-          <h1 className="font-serif text-3xl sm:text-4xl font-medium text-foreground mb-4">
+          <h1 
+            className={`font-serif text-2xl sm:text-3xl font-medium text-foreground mb-4 transition-all duration-500 delay-400 ${
+              showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+            }`}
+          >
             {heart.name}
           </h1>
 
           {/* Message */}
           {heart.message && (
-            <p className="text-lg text-muted-foreground italic mb-6 max-w-md mx-auto">
+            <p 
+              className={`text-base text-muted-foreground italic mb-6 max-w-sm mx-auto transition-opacity duration-500 delay-500 ${
+                showContent ? "opacity-100" : "opacity-0"
+              }`}
+            >
               "{heart.message}"
             </p>
           )}
 
           {/* Date */}
-          <p className="text-sm text-muted-foreground mb-10">
+          <p 
+            className={`text-sm text-muted-foreground/70 mb-16 transition-opacity duration-500 delay-500 ${
+              showContent ? "opacity-100" : "opacity-0"
+            }`}
+          >
             {format(new Date(heart.date), "MMMM d, yyyy")}
           </p>
 
-          {/* Share Section */}
-          <div className="bg-card border border-border rounded-xl p-6 sm:p-8">
-            <h2 className="font-medium text-foreground mb-4">Share this heart</h2>
-            <div className="flex flex-wrap justify-center gap-3">
+          {/* Share Section - appears later, not eager */}
+          <div 
+            className={`transition-opacity duration-700 ${
+              showShare ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            <p className="text-xs text-muted-foreground mb-4">If you'd like to share</p>
+            <div className="flex flex-wrap justify-center gap-2">
               <Button
                 onClick={handleTwitterShare}
-                variant="outline"
-                className="gap-2"
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <Twitter className="w-4 h-4" />
-                Twitter
               </Button>
               <Button
                 onClick={handleFacebookShare}
-                variant="outline"
-                className="gap-2"
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <Facebook className="w-4 h-4" />
-                Facebook
               </Button>
               <Button
                 onClick={handleCopyLink}
-                variant="outline"
-                className="gap-2"
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
               >
                 {copied ? (
-                  <Check className="w-4 h-4 text-primary" />
+                  <Check className="w-4 h-4" />
                 ) : (
                   <Link2 className="w-4 h-4" />
                 )}
-                {copied ? "Copied!" : "Copy Link"}
               </Button>
             </div>
-          </div>
 
-          {/* CTA */}
-          <div className="mt-10">
-            <p className="text-muted-foreground mb-4">Want to add your own heart?</p>
-            <Button asChild>
-              <Link to="/#add-heart">Add Your Heart</Link>
-            </Button>
+            {/* Quiet CTA */}
+            <div className="mt-16 pt-8 border-t border-border/30">
+              <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
+                <Link to="/#add-heart">Leave your own</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </main>

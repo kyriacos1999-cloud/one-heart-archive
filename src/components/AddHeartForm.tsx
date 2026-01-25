@@ -74,17 +74,12 @@ const AddHeartForm = () => {
     const sessionId = urlParams.get("session_id");
     
     if (paymentStatus === "success" && sessionId) {
-      // Fire confetti celebration
-      fireConfetti();
-      toast.success("Payment successful! Your heart has been added 💕", {
-        duration: 5000,
-      });
-      // Clean up URL
+      // Clean up URL first
       window.history.replaceState({}, document.title, window.location.pathname);
       
-      // Fetch the heart ID and redirect to share page
+      // Fetch the heart ID and redirect to share page (no confetti - let the share page be the moment)
       const fetchHeartAndRedirect = async () => {
-        // Wait a moment for the webhook to process
+        // Wait for the webhook to process
         await new Promise(resolve => setTimeout(resolve, 2000));
         
         try {
