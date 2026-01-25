@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { useHeartCount } from "@/hooks/useHeartCount";
 
 interface Heart {
   id: string;
@@ -28,7 +29,7 @@ const GOAL = 1_000_000;
 
 const HeartWall = () => {
   const [dbHearts, setDbHearts] = useState<Heart[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
+  const { count: totalCount } = useHeartCount();
   const [animatedCount, setAnimatedCount] = useState(0);
 
   useEffect(() => {
@@ -44,28 +45,9 @@ const HeartWall = () => {
       }
     };
 
-    const fetchCount = async () => {
-      // Get demo count
-      const { data: demoData } = await supabase
-        .from("demo_config")
-        .select("demo_heart_count")
-        .eq("id", "main")
-        .single();
-      
-      // Get real hearts count
-      const { count: realCount } = await supabase
-        .from("hearts")
-        .select("*", { count: "exact", head: true });
-      
-      const demoCount = demoData?.demo_heart_count || 74026;
-      const total = demoCount + (realCount || 0);
-      setTotalCount(total);
-    };
-
     fetchHearts();
-    fetchCount();
 
-    // Subscribe to realtime updates
+    // Subscribe to realtime updates for hearts display
     const channel = supabase
       .channel("heartwall-realtime")
       .on(
@@ -73,7 +55,6 @@ const HeartWall = () => {
         { event: "INSERT", schema: "public", table: "hearts" },
         (payload) => {
           setDbHearts((prev) => [payload.new as Heart, ...prev].slice(0, 18));
-          setTotalCount((prev) => prev + 1);
         }
       )
       .subscribe();

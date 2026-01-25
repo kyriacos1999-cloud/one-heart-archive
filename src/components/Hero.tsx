@@ -1,43 +1,9 @@
-import { useState, useEffect } from "react";
 import HeartIcon from "./HeartIcon";
 import { Button } from "./ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { useHeartCount } from "@/hooks/useHeartCount";
 
 const Hero = () => {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    const fetchCount = async () => {
-      // Get demo count
-      const { data: demoData } = await supabase
-        .from("demo_config")
-        .select("demo_heart_count")
-        .eq("id", "main")
-        .single();
-      
-      // Get real hearts count
-      const { count: realCount } = await supabase
-        .from("hearts")
-        .select("*", { count: "exact", head: true });
-      
-      const demoCount = demoData?.demo_heart_count || 74026;
-      const total = demoCount + (realCount || 0);
-      setCount(total);
-    };
-
-    fetchCount();
-
-    // Increment demo count every 30 seconds
-    const interval = setInterval(async () => {
-      await supabase
-        .from("demo_config")
-        .update({ demo_heart_count: count + 1, updated_at: new Date().toISOString() })
-        .eq("id", "main");
-      setCount((prev) => prev + 1);
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+  const { count } = useHeartCount();
 
   const scrollToForm = () => {
     document.getElementById("add-heart")?.scrollIntoView({ behavior: "smooth" });
