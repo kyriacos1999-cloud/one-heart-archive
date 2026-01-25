@@ -25,6 +25,7 @@ serve(async (req) => {
     });
 
     // Create a one-time payment session with heart data in metadata
+    // Enable Apple Pay and Google Pay via payment_method_types
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -33,6 +34,7 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
+      payment_method_types: ["card", "apple_pay", "google_pay"],
       success_url: `${req.headers.get("origin")}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/?payment=canceled`,
       metadata: {
