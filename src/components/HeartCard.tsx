@@ -1,7 +1,7 @@
 import { useState } from "react";
 import HeartIcon from "./HeartIcon";
 import { cn } from "@/lib/utils";
-import { Twitter, Facebook, Link2, Check } from "lucide-react";
+import { Twitter, Facebook, Link2, Check, Instagram } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import {
@@ -79,6 +79,13 @@ const HeartCard = ({ name, category, message, date, className, style }: HeartCar
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  const shareOnInstagram = () => {
+    // Instagram doesn't have a direct share URL, so we copy the text and open Instagram
+    navigator.clipboard.writeText(shareText);
+    toast.success("Text copied! Opening Instagram...");
+    window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
+  };
+
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(`${shareUrl} - ${shareText}`);
@@ -153,6 +160,15 @@ const HeartCard = ({ name, category, message, date, className, style }: HeartCar
             >
               <Facebook className="w-4 h-4" />
               <span className="hidden sm:inline">Facebook</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={shareOnInstagram}
+              className="gap-2"
+            >
+              <Instagram className="w-4 h-4" />
+              <span className="hidden sm:inline">Instagram</span>
             </Button>
             <Button
               variant="outline"
