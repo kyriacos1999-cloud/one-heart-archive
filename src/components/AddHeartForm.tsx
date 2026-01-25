@@ -163,10 +163,10 @@ const AddHeartForm = () => {
   };
 
   return (
-    <section id="add-heart" className="py-24 px-4 sm:px-6 lg:px-8 bg-card">
+    <section id="add-heart" className="py-32 px-4 sm:px-6 lg:px-8 bg-card">
       <div className="max-w-md mx-auto">
-        <div className="text-center mb-12">
-          <HeartIcon className="w-8 h-8 mx-auto mb-5 opacity-60" />
+        <div className="text-center mb-14">
+          <HeartIcon className="w-8 h-8 mx-auto mb-6 opacity-60 animate-breathe" />
           <h2 className="font-serif text-3xl sm:text-4xl font-medium text-foreground">
             Leave Your Mark
           </h2>
@@ -277,18 +277,20 @@ const AddHeartForm = () => {
             </p>
           </div>
 
-          <div className="pt-6 space-y-4">
+          <div className="pt-8 space-y-5">
             <Button
               onClick={handleStripeCheckout}
               disabled={isSubmitting}
-              className="w-full h-14 text-base font-medium rounded-md"
+              className="w-full h-14 text-base font-medium rounded-md transition-all duration-400 hover:scale-[1.02]"
               size="lg"
             >
               <HeartIcon className="w-4 h-4 mr-2" />
               {isSubmitting ? "Processing..." : "Leave Your Heart — €1"}
             </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              Your heart joins the archive. It stays here.
+            <p className="text-center text-xs text-muted-foreground leading-relaxed">
+              Your heart joins the archive.
+              <br />
+              It stays here.
             </p>
           </div>
         </div>
