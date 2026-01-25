@@ -7,6 +7,7 @@ import { Progress } from "./ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { useHeartCount } from "@/hooks/useHeartCount";
+import { demoHearts } from "@/data/demoHearts";
 
 interface Heart {
   id: string;
@@ -15,15 +16,6 @@ interface Heart {
   message: string | null;
   date: string;
 }
-
-const sampleHearts = [
-  { name: "Emma & James", category: "romantic", message: "Together forever, through every storm and every sunny day.", date: "January 14, 2024" },
-  { name: "For Mom", category: "family", message: "Thank you for everything. Your love guides me every day.", date: "December 25, 2023" },
-  { name: "A.K.", category: "self", message: "A reminder to always believe in myself.", date: "March 1, 2024" },
-  { name: "The Johnsons", category: "family", message: "Family is everything. We stick together no matter what.", date: "November 28, 2023" },
-  { name: "Sarah + Lily", category: "friendship", message: "Best friends since kindergarten. Nothing can break this bond.", date: "February 14, 2024" },
-  { name: "In memory of Dad", category: "memory", message: "Gone but never forgotten. Your wisdom lives on.", date: "April 3, 2023" },
-];
 
 const GOAL = 1_000_000;
 
@@ -93,7 +85,7 @@ const HeartWall = () => {
       message: h.message || "",
       date: format(new Date(h.date), "MMMM d, yyyy"),
     })),
-    ...sampleHearts,
+    ...demoHearts,
   ].slice(0, 24);
 
   const progressPercentage = Math.min((totalCount / GOAL) * 100, 100);
