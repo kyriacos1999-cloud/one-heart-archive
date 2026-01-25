@@ -4,10 +4,12 @@ import { ArrowLeft, Search } from "lucide-react";
 import HeartCard from "@/components/HeartCard";
 import Footer from "@/components/Footer";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { useHeartCount } from "@/hooks/useHeartCount";
 import { demoHearts } from "@/data/demoHearts";
+import { cn } from "@/lib/utils";
 
 interface Heart {
   id: string;
@@ -18,8 +20,18 @@ interface Heart {
   created_at: string;
 }
 
+const categories = [
+  { id: "all", label: "All" },
+  { id: "romantic", label: "Romantic" },
+  { id: "family", label: "Family" },
+  { id: "friendship", label: "Friendship" },
+  { id: "memory", label: "Memory" },
+  { id: "self", label: "Self" },
+];
+
 const Hearts = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [dbHearts, setDbHearts] = useState<Heart[]>([]);
   const [loading, setLoading] = useState(true);
   const { count: totalHeartCount } = useHeartCount();
@@ -69,12 +81,23 @@ const Hearts = () => {
   }, [dbHearts]);
 
   const filteredHearts = useMemo(() => {
-    if (!searchQuery.trim()) return allHearts;
-    const query = searchQuery.toLowerCase().trim();
-    return allHearts.filter((heart) =>
-      heart.name.toLowerCase().includes(query)
-    );
-  }, [searchQuery, allHearts]);
+    let hearts = allHearts;
+    
+    // Filter by category
+    if (selectedCategory !== "all") {
+      hearts = hearts.filter((heart) => heart.category === selectedCategory);
+    }
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      hearts = hearts.filter((heart) =>
+        heart.name.toLowerCase().includes(query)
+      );
+    }
+    
+    return hearts;
+  }, [searchQuery, selectedCategory, allHearts]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -97,7 +120,7 @@ const Hearts = () => {
       <main className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           {/* Search */}
-          <div className="max-w-md mx-auto mb-10">
+          <div className="max-w-md mx-auto mb-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -111,9 +134,27 @@ const Hearts = () => {
             </div>
           </div>
 
+          {/* Category Filters */}
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                variant={selectedCategory === category.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(category.id)}
+                className={cn(
+                  "text-xs sm:text-sm transition-all",
+                  selectedCategory === category.id && "shadow-sm"
+                )}
+              >
+                {category.label}
+              </Button>
+            ))}
+          </div>
+
           <div className="text-center mb-8">
             <p className="text-muted-foreground text-sm">
-              {searchQuery 
+              {searchQuery || selectedCategory !== "all"
                 ? `${filteredHearts.length} ${filteredHearts.length === 1 ? "heart" : "hearts"} found`
                 : `${totalHeartCount.toLocaleString()} hearts added`
               }
