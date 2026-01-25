@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { useHeartCount } from "@/hooks/useHeartCount";
 
 interface Heart {
   id: string;
@@ -29,6 +30,7 @@ const Hearts = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [dbHearts, setDbHearts] = useState<Heart[]>([]);
   const [loading, setLoading] = useState(true);
+  const { count: totalHeartCount } = useHeartCount();
 
   useEffect(() => {
     const fetchHearts = async () => {
@@ -119,7 +121,10 @@ const Hearts = () => {
 
           <div className="text-center mb-8">
             <p className="text-muted-foreground text-sm">
-              {filteredHearts.length} {filteredHearts.length === 1 ? "heart" : "hearts"} {searchQuery && "found"}
+              {searchQuery 
+                ? `${filteredHearts.length} ${filteredHearts.length === 1 ? "heart" : "hearts"} found`
+                : `${totalHeartCount.toLocaleString()} hearts added`
+              }
             </p>
           </div>
 
