@@ -1,6 +1,9 @@
 import { useState } from "react";
 import HeartIcon from "./HeartIcon";
 import { cn } from "@/lib/utils";
+import { Twitter, Facebook, Link2, Check } from "lucide-react";
+import { Button } from "./ui/button";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -60,7 +63,32 @@ const categoryColors: Record<string, { bg: string; border: string; hover: string
 
 const HeartCard = ({ name, category, message, date, className, style }: HeartCardProps) => {
   const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const colors = categoryColors[category] || categoryColors.romantic;
+
+  const shareText = `${name} added a heart to the Heart Wall: "${message || "A heart full of love, placed here forever."}"`;
+  const shareUrl = typeof window !== "undefined" ? window.location.origin : "";
+
+  const shareOnTwitter = () => {
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const shareOnFacebook = () => {
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(`${shareUrl} - ${shareText}`);
+      setCopied(true);
+      toast.success("Link copied!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
 
   return (
     <>
@@ -104,6 +132,37 @@ const HeartCard = ({ name, category, message, date, className, style }: HeartCar
             <p className="text-center text-foreground/90 font-light leading-relaxed">
               {message || "A heart full of love, placed here forever."}
             </p>
+          </div>
+          
+          {/* Social Share Buttons */}
+          <div className="flex justify-center gap-3 pt-2 pb-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={shareOnTwitter}
+              className="gap-2"
+            >
+              <Twitter className="w-4 h-4" />
+              <span className="hidden sm:inline">Twitter</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={shareOnFacebook}
+              className="gap-2"
+            >
+              <Facebook className="w-4 h-4" />
+              <span className="hidden sm:inline">Facebook</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={copyLink}
+              className="gap-2"
+            >
+              {copied ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
+              <span className="hidden sm:inline">{copied ? "Copied" : "Copy"}</span>
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
