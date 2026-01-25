@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      demo_config: {
+        Row: {
+          demo_heart_count: number
+          id: string
+          last_reset_at: string
+          updated_at: string
+        }
+        Insert: {
+          demo_heart_count?: number
+          id?: string
+          last_reset_at?: string
+          updated_at?: string
+        }
+        Update: {
+          demo_heart_count?: number
+          id?: string
+          last_reset_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hearts: {
         Row: {
           category: string
