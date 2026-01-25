@@ -18,16 +18,16 @@ const Hero = () => {
           One Heart. One Euro. Forever.
         </h1>
         
-        <p className="mt-6 text-lg sm:text-xl text-muted-foreground font-light max-w-xl mx-auto text-balance">
-          Add your heart to a living wall of human connection — before it closes.
+        <p className="mt-8 text-lg sm:text-xl text-muted-foreground font-light max-w-md mx-auto">
+          A permanent record that someone was loved.
         </p>
         
         <Button
           onClick={scrollToForm}
-          className="mt-10 px-8 py-6 text-base font-medium tracking-wide"
+          className="mt-12 px-10 py-6 text-base font-medium tracking-wide"
           size="lg"
         >
-          Add Your Heart
+          Leave Your Heart
         </Button>
         
         <p className="mt-10 text-sm text-muted-foreground">
