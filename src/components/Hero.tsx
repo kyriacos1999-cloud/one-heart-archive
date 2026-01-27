@@ -31,7 +31,7 @@ const Hero = () => {
           className="mt-8 px-10 py-6 text-base font-medium tracking-wide transition-transform duration-400 hover:scale-[1.02]"
           size="lg"
         >
-          Leave Your Heart
+          Place a heart — €1
         </Button>
         
       </div>

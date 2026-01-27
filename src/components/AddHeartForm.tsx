@@ -162,9 +162,9 @@ const AddHeartForm = () => {
       <div className="max-w-md mx-auto">
         <div className="text-center mb-14">
           <HeartIcon className="w-8 h-8 mx-auto mb-6 opacity-60 animate-breathe" />
-          <h2 className="font-serif text-3xl sm:text-4xl font-medium text-foreground">
-            Leave Your Mark
-          </h2>
+          <p className="text-base text-muted-foreground font-light italic">
+            Someone came to mind.
+          </p>
         </div>
 
         <div className="space-y-6">
@@ -273,6 +273,9 @@ const AddHeartForm = () => {
           </div>
 
           <div className="pt-8 space-y-5">
+            <p className="text-center text-sm text-muted-foreground font-light">
+              Whenever it feels true.
+            </p>
             <Button
               onClick={handleStripeCheckout}
               disabled={isSubmitting}
@@ -280,12 +283,10 @@ const AddHeartForm = () => {
               size="lg"
             >
               <HeartIcon className="w-4 h-4 mr-2" />
-              {isSubmitting ? "Processing..." : "Leave Your Heart — €1"}
+              {isSubmitting ? "Processing..." : "Place a heart — €1"}
             </Button>
             <p className="text-center text-xs text-muted-foreground leading-relaxed">
-              Your heart joins the archive.
-              <br />
-              It stays here.
+              It stays.
             </p>
           </div>
         </div>
