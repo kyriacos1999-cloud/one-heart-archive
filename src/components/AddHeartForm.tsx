@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, CreditCard } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
@@ -18,45 +18,8 @@ import { cn } from "@/lib/utils";
 import HeartIcon from "./HeartIcon";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import confetti from "canvas-confetti";
+import NativePayButton from "./NativePayButton";
 
-const fireConfetti = () => {
-  const duration = 3000;
-  const end = Date.now() + duration;
-
-  const colors = ['#e11d48', '#f43f5e', '#fb7185', '#fda4af'];
-
-  const frame = () => {
-    confetti({
-      particleCount: 3,
-      angle: 60,
-      spread: 55,
-      origin: { x: 0 },
-      colors,
-    });
-    confetti({
-      particleCount: 3,
-      angle: 120,
-      spread: 55,
-      origin: { x: 1 },
-      colors,
-    });
-
-    if (Date.now() < end) {
-      requestAnimationFrame(frame);
-    }
-  };
-
-  frame();
-
-  // Big burst in the middle
-  confetti({
-    particleCount: 100,
-    spread: 100,
-    origin: { y: 0.6 },
-    colors,
-  });
-};
 
 const AddHeartForm = () => {
   const [name, setName] = useState("");
@@ -65,7 +28,7 @@ const AddHeartForm = () => {
   const [message, setMessage] = useState("");
   const [date, setDate] = useState<Date>(new Date());
   const [isFormValid, setIsFormValid] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
 
   useEffect(() => {
     // Check for payment success in URL
@@ -114,47 +77,9 @@ const AddHeartForm = () => {
     return valid;
   };
 
-  const resetForm = () => {
-    setName("");
-    setRecipientEmail("");
-    setCategory("");
-    setMessage("");
-    setDate(new Date());
-  };
 
-  const handleStripeCheckout = async () => {
-    if (!validateForm()) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-heart-payment", {
-        body: {
-          name: name.trim(),
-          category,
-          message: message.trim() || "",
-          date: format(date, "yyyy-MM-dd"),
-          recipientEmail: recipientEmail.trim() || "",
-        },
-      });
-
-      if (error) {
-        console.error("Error creating payment:", error);
-        toast.error("Failed to start payment. Please try again.");
-        return;
-      }
-
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleValidationError = () => {
+    toast.error("Please fill in all required fields");
   };
 
   return (
@@ -276,15 +201,15 @@ const AddHeartForm = () => {
             <p className="text-center text-sm text-muted-foreground font-light">
               Whenever it feels true.
             </p>
-            <Button
-              onClick={handleStripeCheckout}
-              disabled={isSubmitting}
-              className="w-full h-14 text-base font-medium rounded-md transition-all duration-400 hover:scale-[1.02]"
-              size="lg"
-            >
-              <HeartIcon className="w-4 h-4 mr-2" />
-              {isSubmitting ? "Processing..." : "Place a heart — €1"}
-            </Button>
+            <NativePayButton
+              name={name}
+              category={category}
+              message={message}
+              date={format(date, "yyyy-MM-dd")}
+              recipientEmail={recipientEmail}
+              isFormValid={isFormValid}
+              onValidationError={handleValidationError}
+            />
             <p className="text-center text-xs text-muted-foreground leading-relaxed">
               It stays.
             </p>
