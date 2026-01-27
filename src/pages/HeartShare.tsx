@@ -147,11 +147,11 @@ const HeartShare = () => {
           
           {/* Confirmation line - appears first */}
           <p 
-            className={`text-sm text-muted-foreground mb-10 transition-opacity duration-700 ${
+            className={`text-sm text-muted-foreground mb-10 transition-opacity duration-1000 ${
               showContent ? "opacity-100" : "opacity-0"
             }`}
           >
-            Your heart is here now. It stays.
+            It stays.
           </p>
 
           {/* Heart Icon - muted, not celebratory */}

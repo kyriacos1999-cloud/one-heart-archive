@@ -14,14 +14,6 @@ const Footer = () => {
           Created independently. No ads. No sponsors.
         </p>
         
-        <div className="mt-10 flex items-center justify-center gap-6">
-          <button
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Share on Twitter"
-          >
-            Share
-          </button>
-        </div>
       </div>
     </footer>
   );
