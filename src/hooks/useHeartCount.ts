@@ -25,23 +25,14 @@ export const useHeartCount = () => {
   useEffect(() => {
     fetchCount();
 
-    // Increment demo count every 30 seconds while on site
+    // Increment demo count every 30 seconds while on site via edge function
     const interval = setInterval(async () => {
-      const { data } = await supabase
-        .from("demo_config")
-        .select("demo_heart_count")
-        .eq("id", "main")
-        .maybeSingle();
-      
-      if (data) {
-        const newCount = data.demo_heart_count + 1;
-        await supabase
-          .from("demo_config")
-          .update({ demo_heart_count: newCount, updated_at: new Date().toISOString() })
-          .eq("id", "main");
-        
+      try {
+        await supabase.functions.invoke("increment-demo-count");
         // Refetch to get accurate total
         fetchCount();
+      } catch (error) {
+        console.error("Error incrementing demo count:", error);
       }
     }, 30000);
 

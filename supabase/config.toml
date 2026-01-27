@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.reset-demo-hearts]
 verify_jwt = false
+
+[functions.increment-demo-count]
+verify_jwt = false
