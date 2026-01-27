@@ -7,6 +7,18 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// HTML escape function to prevent XSS in email templates
+function escapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, (m) => map[m]);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -44,7 +56,7 @@ serve(async (req) => {
         });
       }
 
-      // Create Supabase client
+      // Create Supabase client with service role for bypassing RLS
       const supabase = createClient(
         Deno.env.get("SUPABASE_URL") ?? "",
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -73,6 +85,12 @@ serve(async (req) => {
         const resendApiKey = Deno.env.get("RESEND_API_KEY");
         if (resendApiKey) {
           try {
+            // Escape all user-provided content to prevent XSS
+            const safeName = escapeHtml(name);
+            const safeCategory = escapeHtml(category.charAt(0).toUpperCase() + category.slice(1));
+            const safeMessage = message ? escapeHtml(message) : "";
+            const safeDate = escapeHtml(date);
+
             await fetch("https://api.resend.com/emails", {
               method: "POST",
               headers: {
@@ -82,7 +100,7 @@ serve(async (req) => {
               body: JSON.stringify({
                 from: "Heart Wall <onboarding@resend.dev>",
                 to: [recipientEmail],
-                subject: `💕 ${name} added a heart for you!`,
+                subject: `💕 ${safeName} added a heart for you!`,
                 html: `
                   <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);">
                     <div style="text-align: center; margin-bottom: 30px;">
@@ -93,20 +111,20 @@ serve(async (req) => {
                     </h1>
                     <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
                       <p style="color: #374151; font-size: 18px; line-height: 1.6; margin-bottom: 20px;">
-                        <strong>${name}</strong> has added a heart to the Heart Wall in your honor.
+                        <strong>${safeName}</strong> has added a heart to the Heart Wall in your honor.
                       </p>
                       <div style="background: #fef2f2; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
                         <p style="color: #9f1239; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Category</p>
-                        <p style="color: #be123c; font-size: 18px; font-weight: 500;">${category.charAt(0).toUpperCase() + category.slice(1)}</p>
+                        <p style="color: #be123c; font-size: 18px; font-weight: 500;">${safeCategory}</p>
                       </div>
-                      ${message ? `
+                      ${safeMessage ? `
                         <div style="background: #fef2f2; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
                           <p style="color: #9f1239; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Their Message</p>
-                          <p style="color: #374151; font-size: 16px; font-style: italic;">"${message}"</p>
+                          <p style="color: #374151; font-size: 16px; font-style: italic;">"${safeMessage}"</p>
                         </div>
                       ` : ""}
                       <p style="color: #6b7280; font-size: 14px; text-align: center;">
-                        Date: ${date}
+                        Date: ${safeDate}
                       </p>
                     </div>
                     <p style="text-align: center; color: #9ca3af; font-size: 14px; margin-top: 30px;">

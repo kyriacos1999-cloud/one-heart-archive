@@ -39,7 +39,7 @@ const Hearts = () => {
   useEffect(() => {
     const fetchHearts = async () => {
       const { data, error } = await supabase
-        .from("hearts")
+        .from("hearts_public")
         .select("*")
         .order("created_at", { ascending: false });
       

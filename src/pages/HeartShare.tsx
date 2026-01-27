@@ -44,7 +44,7 @@ const HeartShare = () => {
       if (!id) return;
 
       const { data, error } = await supabase
-        .from("hearts")
+        .from("hearts_public")
         .select("*")
         .eq("id", id)
         .single();

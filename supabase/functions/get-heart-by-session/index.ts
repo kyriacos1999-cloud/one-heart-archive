@@ -21,9 +21,18 @@ serve(async (req) => {
       );
     }
 
+    // Validate sessionId format (Stripe session IDs start with cs_)
+    if (typeof sessionId !== "string" || !sessionId.startsWith("cs_") || sessionId.length > 200) {
+      return new Response(
+        JSON.stringify({ error: "Invalid session ID format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Use service role key to query the hearts table (bypasses RLS)
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
     const { data, error } = await supabase
