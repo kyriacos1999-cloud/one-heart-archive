@@ -34,10 +34,6 @@ const Hero = () => {
           Leave Your Heart
         </Button>
         
-        <p className="mt-14 text-sm text-muted-foreground">
-          <span className="font-serif italic">{count.toLocaleString()}</span>
-          <span className="ml-1">hearts in the archive</span>
-        </p>
       </div>
     </section>
   );
