@@ -93,6 +93,30 @@ const HeartWall = () => {
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
+        {/* Progress Counter */}
+        <div className="mb-12 text-center">
+          <div className="inline-block">
+            <p className="text-sm text-muted-foreground mb-2 tracking-wide">
+              Hearts added
+            </p>
+            <p className="font-serif text-4xl sm:text-5xl font-medium text-foreground mb-4">
+              {animatedCount.toLocaleString()}
+              <span className="text-muted-foreground/50 text-2xl sm:text-3xl ml-2">
+                / {GOAL.toLocaleString()}
+              </span>
+            </p>
+            <div className="w-64 sm:w-80 mx-auto">
+              <Progress 
+                value={progressPercentage} 
+                className="h-2 bg-muted"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {(100 - progressPercentage).toFixed(4)}% remaining until the wall closes
+            </p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
           {displayHearts.map((heart, index) => (
             <HeartCard
