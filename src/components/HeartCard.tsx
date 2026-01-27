@@ -1,7 +1,7 @@
 import { useState } from "react";
 import HeartIcon from "./HeartIcon";
 import { cn } from "@/lib/utils";
-import { Twitter, Facebook, Link2, Check } from "lucide-react";
+import { Facebook, Instagram, Link2, Check } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import {
@@ -80,14 +80,29 @@ const HeartCard = ({ name, category, message, date, className, style }: HeartCar
   const shareText = `${name} added a heart to the Heart Wall: "${message || "A heart full of love, placed here forever."}"`;
   const shareUrl = typeof window !== "undefined" ? window.location.origin : "";
 
-  const shareOnTwitter = () => {
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
-
   const shareOnFacebook = () => {
     const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
     window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const shareOnInstagram = async () => {
+    try {
+      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+      toast.success("Copied — paste in Instagram");
+      window.open("https://instagram.com", "_blank", "noopener,noreferrer");
+    } catch {
+      toast.error("Failed to copy");
+    }
+  };
+
+  const shareOnTikTok = async () => {
+    try {
+      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+      toast.success("Copied — paste in TikTok");
+      window.open("https://tiktok.com", "_blank", "noopener,noreferrer");
+    } catch {
+      toast.error("Failed to copy");
+    }
   };
 
   const copyLink = async () => {
@@ -149,20 +164,31 @@ const HeartCard = ({ name, category, message, date, className, style }: HeartCar
             <Button
               variant="ghost"
               size="sm"
-              onClick={shareOnTwitter}
-              className="text-muted-foreground/60"
-              disabled={!showShare}
-            >
-              <Twitter className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
               onClick={shareOnFacebook}
               className="text-muted-foreground/60"
               disabled={!showShare}
             >
               <Facebook className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={shareOnInstagram}
+              className="text-muted-foreground/60"
+              disabled={!showShare}
+            >
+              <Instagram className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={shareOnTikTok}
+              className="text-muted-foreground/60"
+              disabled={!showShare}
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+              </svg>
             </Button>
             <Button
               variant="ghost"
