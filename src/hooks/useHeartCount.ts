@@ -13,7 +13,7 @@ export const useHeartCount = () => {
       .maybeSingle();
 
     const { count: realCount } = await supabase
-      .from("hearts")
+      .from("hearts_public")
       .select("*", { count: "exact", head: true });
 
     const demoCount = demoData?.demo_heart_count || 74026;
