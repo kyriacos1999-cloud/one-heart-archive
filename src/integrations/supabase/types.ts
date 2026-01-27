@@ -70,7 +70,33 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      hearts_public: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          date: string | null
+          id: string | null
+          message: string | null
+          name: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          date?: string | null
+          id?: string | null
+          message?: string | null
+          name?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          date?: string | null
+          id?: string | null
+          message?: string | null
+          name?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
