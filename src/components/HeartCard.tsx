@@ -1,7 +1,7 @@
 import { useState } from "react";
 import HeartIcon from "./HeartIcon";
 import { cn } from "@/lib/utils";
-import { Twitter, Facebook, Link2, Check, Instagram } from "lucide-react";
+import { Twitter, Facebook, Link2, Check } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import {
@@ -64,7 +64,18 @@ const categoryColors: Record<string, { bg: string; border: string; hover: string
 const HeartCard = ({ name, category, message, date, className, style }: HeartCardProps) => {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const colors = categoryColors[category] || categoryColors.romantic;
+
+  // Delay share options to feel secondary
+  const handleOpen = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (isOpen) {
+      setTimeout(() => setShowShare(true), 1200);
+    } else {
+      setShowShare(false);
+    }
+  };
 
   const shareText = `${name} added a heart to the Heart Wall: "${message || "A heart full of love, placed here forever."}"`;
   const shareUrl = typeof window !== "undefined" ? window.location.origin : "";
@@ -79,13 +90,6 @@ const HeartCard = ({ name, category, message, date, className, style }: HeartCar
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const shareOnInstagram = () => {
-    // Instagram doesn't have a direct share URL, so we copy the text and open Instagram
-    navigator.clipboard.writeText(shareText);
-    toast.success("Text copied! Opening Instagram...");
-    window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
-  };
-
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(`${shareUrl} - ${shareText}`);
@@ -97,87 +101,77 @@ const HeartCard = ({ name, category, message, date, className, style }: HeartCar
     }
   };
 
+  // Subtle opacity variation for human imperfection
+  const baseOpacity = style?.animationDelay 
+    ? 0.92 + (parseInt(style.animationDelay) % 5) * 0.02 
+    : 1;
+
   return (
     <>
       <button
         onClick={() => setOpen(true)}
         className={cn(
-          "rounded-sm p-4 flex flex-col items-center justify-center text-center transition-all duration-300 hover:scale-105 cursor-pointer border",
+          "rounded-sm p-4 flex flex-col items-center justify-center text-center transition-all duration-500 hover:scale-[1.02] cursor-pointer border",
           colors.bg,
           colors.border,
           colors.hover,
           className
         )}
-        style={style}
+        style={{ ...style, opacity: baseOpacity }}
       >
-        <HeartIcon className={cn("w-5 h-5 mb-2 opacity-80", colors.icon)} />
-        <p className="font-serif text-sm font-medium text-foreground leading-tight">
+        <HeartIcon className={cn("w-5 h-5 mb-2 opacity-70", colors.icon)} />
+        <p className="font-serif text-sm font-medium text-foreground/90 leading-tight">
           {name}
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          {categoryLabels[category] || category}
         </p>
       </button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <HeartIcon className={cn("w-10 h-10", colors.icon)} />
+              <HeartIcon className={cn("w-10 h-10 opacity-80", colors.icon)} />
             </div>
             <DialogTitle className="font-serif text-xl text-center">{name}</DialogTitle>
-            <p className="text-xs text-muted-foreground">
-              {categoryLabels[category] || category}
-            </p>
             {date && (
-              <p className="text-xs text-muted-foreground/70 mt-1">
+              <p className="text-xs text-muted-foreground/50 mt-2">
                 {date}
               </p>
             )}
           </DialogHeader>
-          <div className="py-4">
-            <p className="text-center text-foreground/90 font-light leading-relaxed">
+          <div className="py-6">
+            <p className="text-center text-foreground/80 font-light leading-relaxed">
               {message || "A heart full of love, placed here forever."}
             </p>
           </div>
           
-          {/* Social Share Buttons */}
-          <div className="flex justify-center gap-3 pt-2 pb-2">
+          {/* Share options - delayed and subdued */}
+          <div className={`flex justify-center gap-2 pt-2 pb-2 transition-opacity duration-700 ${showShare ? "opacity-40 hover:opacity-70" : "opacity-0"}`}>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={shareOnTwitter}
-              className="gap-2"
+              className="text-muted-foreground/60"
+              disabled={!showShare}
             >
-              <Twitter className="w-4 h-4" />
-              <span className="hidden sm:inline">Twitter</span>
+              <Twitter className="w-3.5 h-3.5" />
             </Button>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={shareOnFacebook}
-              className="gap-2"
+              className="text-muted-foreground/60"
+              disabled={!showShare}
             >
-              <Facebook className="w-4 h-4" />
-              <span className="hidden sm:inline">Facebook</span>
+              <Facebook className="w-3.5 h-3.5" />
             </Button>
             <Button
-              variant="outline"
-              size="sm"
-              onClick={shareOnInstagram}
-              className="gap-2"
-            >
-              <Instagram className="w-4 h-4" />
-              <span className="hidden sm:inline">Instagram</span>
-            </Button>
-            <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={copyLink}
-              className="gap-2"
+              className="text-muted-foreground/60"
+              disabled={!showShare}
             >
-              {copied ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
-              <span className="hidden sm:inline">{copied ? "Copied" : "Copy"}</span>
+              {copied ? <Check className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />}
             </Button>
           </div>
         </DialogContent>
