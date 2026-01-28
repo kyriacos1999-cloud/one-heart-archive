@@ -17,9 +17,8 @@ import {
 import { cn } from "@/lib/utils";
 import HeartIcon from "./HeartIcon";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import NativePayButton from "./NativePayButton";
 
+const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/9B6bJ13Am1xd935a2a3oA00";
 
 const AddHeartForm = () => {
   const [name, setName] = useState("");
@@ -28,44 +27,13 @@ const AddHeartForm = () => {
   const [message, setMessage] = useState("");
   const [date, setDate] = useState<Date>(new Date());
   const [isFormValid, setIsFormValid] = useState(false);
-  
 
+  // Optional: handle a canceled return (only if you configure Stripe to redirect back with ?payment=canceled)
   useEffect(() => {
-    // Check for payment success in URL
     const urlParams = new URLSearchParams(window.location.search);
     const paymentStatus = urlParams.get("payment");
-    const sessionId = urlParams.get("session_id");
-    
-    if (paymentStatus === "success" && sessionId) {
-      // Clean up URL first
-      window.history.replaceState({}, document.title, window.location.pathname);
-      
-      // Fetch the heart ID and redirect to share page (no confetti - let the share page be the moment)
-      const fetchHeartAndRedirect = async () => {
-        // Wait for the webhook to process
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        try {
-          const { data, error } = await supabase.functions.invoke("get-heart-by-session", {
-            body: { sessionId },
-          });
-          
-          if (!error && data?.heartId) {
-            // Redirect to share page
-            window.location.href = `/heart/${data.heartId}`;
-          }
-        } catch (err) {
-          console.error("Error fetching heart:", err);
-          // Fallback: scroll to heart wall
-          const heartWall = document.querySelector('.grid.grid-cols-3');
-          if (heartWall) {
-            heartWall.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }
-      };
-      
-      fetchHeartAndRedirect();
-    } else if (paymentStatus === "canceled") {
+
+    if (paymentStatus === "canceled") {
       toast.info("Payment was canceled");
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -77,9 +45,36 @@ const AddHeartForm = () => {
     return valid;
   };
 
-
   const handleValidationError = () => {
     toast.error("Please fill in all required fields");
+  };
+
+  const handlePay = () => {
+    // Validate first
+    if (!validateForm()) {
+      handleValidationError();
+      return;
+    }
+
+    // Store pending heart data locally (so you can finalize it after payment later if you want)
+    const pendingHeart = {
+      name: name.trim(),
+      recipientEmail: recipientEmail.trim() || null,
+      category,
+      message: message.trim() || null,
+      date: format(date, "yyyy-MM-dd"),
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      localStorage.setItem("pendingHeart", JSON.stringify(pendingHeart));
+    } catch (e) {
+      // If localStorage fails, still allow payment
+      console.warn("Could not save pendingHeart to localStorage:", e);
+    }
+
+    // Redirect to Stripe Payment Link
+    window.location.href = STRIPE_PAYMENT_LINK;
   };
 
   return (
@@ -104,7 +99,8 @@ const AddHeartForm = () => {
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
-                validateForm();
+                // validate in next tick so state updates first
+                setTimeout(validateForm, 0);
               }}
               onBlur={validateForm}
               className="bg-background"
@@ -114,7 +110,8 @@ const AddHeartForm = () => {
 
           <div className="space-y-2">
             <Label htmlFor="recipientEmail" className="text-sm font-medium">
-              Recipient Email <span className="text-muted-foreground font-normal">(optional)</span>
+              Recipient Email{" "}
+              <span className="text-muted-foreground font-normal">(optional)</span>
             </Label>
             <Input
               id="recipientEmail"
@@ -133,8 +130,8 @@ const AddHeartForm = () => {
             <Label htmlFor="category" className="text-sm font-medium">
               Category
             </Label>
-            <Select 
-              value={category} 
+            <Select
+              value={category}
               onValueChange={(value) => {
                 setCategory(value);
                 setTimeout(validateForm, 0);
@@ -182,7 +179,10 @@ const AddHeartForm = () => {
 
           <div className="space-y-2">
             <Label htmlFor="message" className="text-sm font-medium">
-              Message <span className="text-muted-foreground font-normal">(optional, 120 chars)</span>
+              Message{" "}
+              <span className="text-muted-foreground font-normal">
+                (optional, 120 chars)
+              </span>
             </Label>
             <Textarea
               id="message"
@@ -201,15 +201,15 @@ const AddHeartForm = () => {
             <p className="text-center text-sm text-muted-foreground font-light">
               Whenever it feels true.
             </p>
-            <NativePayButton
-              name={name}
-              category={category}
-              message={message}
-              date={format(date, "yyyy-MM-dd")}
-              recipientEmail={recipientEmail}
-              isFormValid={isFormValid}
-              onValidationError={handleValidationError}
-            />
+
+            <Button
+              className="w-full h-14 text-base"
+              disabled={!isFormValid}
+              onClick={handlePay}
+            >
+              Place a heart — €1
+            </Button>
+
             <p className="text-center text-xs text-muted-foreground leading-relaxed">
               It stays.
             </p>
