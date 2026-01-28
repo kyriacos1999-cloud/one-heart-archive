@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   PaymentRequest,
   loadStripe,
@@ -35,6 +35,13 @@ const NativePayButton = ({
   const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(null);
   const [canMakePayment, setCanMakePayment] = useState<"applePay" | "googlePay" | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Store form data in refs so the event handler always has latest values
+  const formDataRef = useRef({ name, category, message, date, recipientEmail });
+  
+  useEffect(() => {
+    formDataRef.current = { name, category, message, date, recipientEmail };
+  }, [name, category, message, date, recipientEmail]);
 
   useEffect(() => {
     const initStripe = async () => {
@@ -81,67 +88,83 @@ const NativePayButton = ({
     setIsProcessing(true);
 
     try {
+      const formData = formDataRef.current;
+      
       // Create payment intent on the backend
       const { data: intentData, error: intentError } = await supabase.functions.invoke(
         "create-payment-intent",
         {
           body: {
-            name: name.trim(),
-            category,
-            message: message.trim() || "",
-            date,
-            recipientEmail: recipientEmail.trim() || "",
+            name: formData.name.trim(),
+            category: formData.category,
+            message: formData.message.trim() || "",
+            date: formData.date,
+            recipientEmail: formData.recipientEmail.trim() || "",
           },
         }
       );
 
       if (intentError || !intentData?.clientSecret) {
+        console.error("Error creating payment intent:", intentError);
         throw new Error(intentError?.message || "Failed to create payment");
       }
 
-      // Update payment request with the client secret
+      const clientSecret = intentData.clientSecret;
+      const paymentIntentId = intentData.paymentIntentId;
+
+      // Remove any existing listeners and add new one
+      paymentRequest.off("paymentmethod");
+      
       paymentRequest.on("paymentmethod", async (ev) => {
-        const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
-          intentData.clientSecret,
-          { payment_method: ev.paymentMethod.id },
-          { handleActions: false }
-        );
+        try {
+          const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
+            clientSecret,
+            { payment_method: ev.paymentMethod.id },
+            { handleActions: false }
+          );
 
-        if (confirmError) {
-          ev.complete("fail");
-          toast.error(confirmError.message || "Payment failed");
-          setIsProcessing(false);
-          return;
-        }
-
-        if (paymentIntent?.status === "requires_action") {
-          const { error: actionError } = await stripe.confirmCardPayment(intentData.clientSecret);
-          if (actionError) {
+          if (confirmError) {
             ev.complete("fail");
-            toast.error(actionError.message || "Payment failed");
+            toast.error(confirmError.message || "Payment failed");
             setIsProcessing(false);
             return;
           }
-        }
 
-        ev.complete("success");
-
-        // Confirm the payment and save the heart
-        const { data: confirmData, error: confirmFnError } = await supabase.functions.invoke(
-          "confirm-heart-payment",
-          {
-            body: { paymentIntentId: intentData.paymentIntentId },
+          if (paymentIntent?.status === "requires_action") {
+            const { error: actionError } = await stripe.confirmCardPayment(clientSecret);
+            if (actionError) {
+              ev.complete("fail");
+              toast.error(actionError.message || "Payment failed");
+              setIsProcessing(false);
+              return;
+            }
           }
-        );
 
-        if (confirmFnError || !confirmData?.heartId) {
-          toast.error("Payment succeeded but failed to save heart");
+          ev.complete("success");
+
+          // Confirm the payment and save the heart
+          const { data: confirmData, error: confirmFnError } = await supabase.functions.invoke(
+            "confirm-heart-payment",
+            {
+              body: { paymentIntentId },
+            }
+          );
+
+          if (confirmFnError || !confirmData?.heartId) {
+            console.error("Error confirming heart:", confirmFnError, confirmData);
+            toast.error("Payment succeeded but failed to save heart. Please contact support.");
+            setIsProcessing(false);
+            return;
+          }
+
+          // Redirect to share page
+          window.location.href = `/heart/${confirmData.heartId}`;
+        } catch (error) {
+          console.error("Payment method handler error:", error);
+          ev.complete("fail");
+          toast.error("Payment processing failed");
           setIsProcessing(false);
-          return;
         }
-
-        // Redirect to share page
-        window.location.href = `/heart/${confirmData.heartId}`;
       });
 
       // Show the native payment sheet
