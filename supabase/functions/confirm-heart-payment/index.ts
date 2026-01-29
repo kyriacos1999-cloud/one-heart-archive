@@ -73,6 +73,10 @@ serve(async (req) => {
     // Send email notification if recipient email provided
     if (recipientEmail) {
       const resendApiKey = Deno.env.get("RESEND_API_KEY");
+      console.log("Attempting to send email notification");
+      console.log("Recipient email:", recipientEmail);
+      console.log("Resend API key configured:", !!resendApiKey);
+      
       if (resendApiKey) {
         try {
           const safeName = escapeHtml(name);
@@ -80,53 +84,71 @@ serve(async (req) => {
           const safeMessage = message ? escapeHtml(message) : "";
           const safeDate = escapeHtml(date);
 
-          await fetch("https://api.resend.com/emails", {
+          const emailPayload = {
+            from: "Heart Wall <onboarding@resend.dev>",
+            to: [recipientEmail],
+            subject: `💕 ${safeName} added a heart for you!`,
+            html: `
+              <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);">
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <span style="font-size: 48px;">💕</span>
+                </div>
+                <h1 style="text-align: center; color: #be123c; font-size: 28px; margin-bottom: 20px;">
+                  Someone special added a heart for you
+                </h1>
+                <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                  <p style="color: #374151; font-size: 18px; line-height: 1.6; margin-bottom: 20px;">
+                    <strong>${safeName}</strong> has added a heart to the Heart Wall in your honor.
+                  </p>
+                  <div style="background: #fef2f2; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                    <p style="color: #9f1239; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Category</p>
+                    <p style="color: #be123c; font-size: 18px; font-weight: 500;">${safeCategory}</p>
+                  </div>
+                  ${safeMessage ? `
+                    <div style="background: #fef2f2; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                      <p style="color: #9f1239; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Their Message</p>
+                      <p style="color: #374151; font-size: 16px; font-style: italic;">"${safeMessage}"</p>
+                    </div>
+                  ` : ""}
+                  <p style="color: #6b7280; font-size: 14px; text-align: center;">
+                    Date: ${safeDate}
+                  </p>
+                </div>
+                <p style="text-align: center; color: #9ca3af; font-size: 14px; margin-top: 30px;">
+                  Visit the Heart Wall to see all the love being shared.
+                </p>
+              </div>
+            `,
+          };
+          
+          console.log("Sending email with payload:", JSON.stringify({ ...emailPayload, html: "[HTML content]" }));
+
+          const emailResponse = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${resendApiKey}`,
             },
-            body: JSON.stringify({
-              from: "Heart Wall <onboarding@resend.dev>",
-              to: [recipientEmail],
-              subject: `💕 ${safeName} added a heart for you!`,
-              html: `
-                <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);">
-                  <div style="text-align: center; margin-bottom: 30px;">
-                    <span style="font-size: 48px;">💕</span>
-                  </div>
-                  <h1 style="text-align: center; color: #be123c; font-size: 28px; margin-bottom: 20px;">
-                    Someone special added a heart for you
-                  </h1>
-                  <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                    <p style="color: #374151; font-size: 18px; line-height: 1.6; margin-bottom: 20px;">
-                      <strong>${safeName}</strong> has added a heart to the Heart Wall in your honor.
-                    </p>
-                    <div style="background: #fef2f2; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                      <p style="color: #9f1239; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Category</p>
-                      <p style="color: #be123c; font-size: 18px; font-weight: 500;">${safeCategory}</p>
-                    </div>
-                    ${safeMessage ? `
-                      <div style="background: #fef2f2; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                        <p style="color: #9f1239; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Their Message</p>
-                        <p style="color: #374151; font-size: 16px; font-style: italic;">"${safeMessage}"</p>
-                      </div>
-                    ` : ""}
-                    <p style="color: #6b7280; font-size: 14px; text-align: center;">
-                      Date: ${safeDate}
-                    </p>
-                  </div>
-                  <p style="text-align: center; color: #9ca3af; font-size: 14px; margin-top: 30px;">
-                    Visit the Heart Wall to see all the love being shared.
-                  </p>
-                </div>
-              `,
-            }),
+            body: JSON.stringify(emailPayload),
           });
+          
+          const emailResult = await emailResponse.json();
+          console.log("Email API response status:", emailResponse.status);
+          console.log("Email API response:", JSON.stringify(emailResult));
+          
+          if (!emailResponse.ok) {
+            console.error("Email sending failed:", emailResult);
+          } else {
+            console.log("Email sent successfully to:", recipientEmail);
+          }
         } catch (emailError) {
           console.error("Error sending email:", emailError);
         }
+      } else {
+        console.log("No RESEND_API_KEY configured, skipping email");
       }
+    } else {
+      console.log("No recipient email provided, skipping email notification");
     }
 
     console.log("Heart saved successfully:", name, category);
