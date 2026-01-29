@@ -72,12 +72,20 @@ const Hearts = () => {
 
   const allHearts = useMemo(() => {
     const formattedDbHearts = dbHearts.map((h) => ({
+      id: h.id,
       name: h.name,
       category: h.category,
       message: h.message || "",
       date: format(new Date(h.date), "MMMM d, yyyy"),
     }));
-    return [...formattedDbHearts, ...demoHearts];
+    const formattedDemoHearts = demoHearts.map((h) => ({
+      id: undefined as string | undefined,
+      name: h.name,
+      category: h.category,
+      message: h.message,
+      date: h.date,
+    }));
+    return [...formattedDbHearts, ...formattedDemoHearts];
   }, [dbHearts]);
 
   const filteredHearts = useMemo(() => {
@@ -165,7 +173,8 @@ const Hearts = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
               {filteredHearts.map((heart, index) => (
                 <HeartCard
-                  key={index}
+                  key={heart.id || `demo-${index}`}
+                  id={heart.id}
                   name={heart.name}
                   category={heart.category}
                   message={heart.message}
