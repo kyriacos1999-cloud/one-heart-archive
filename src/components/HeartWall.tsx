@@ -80,12 +80,19 @@ const HeartWall = () => {
 
   const displayHearts = [
     ...dbHearts.map((h) => ({
+      id: h.id,
       name: h.name,
       category: h.category,
       message: h.message || "",
       date: format(new Date(h.date), "MMMM d, yyyy"),
     })),
-    ...demoHearts,
+    ...demoHearts.map((h) => ({
+      id: undefined, // Demo hearts don't have IDs
+      name: h.name,
+      category: h.category,
+      message: h.message,
+      date: h.date,
+    })),
   ].slice(0, 24);
 
   const progressPercentage = Math.min((totalCount / GOAL) * 100, 100);
@@ -120,7 +127,8 @@ const HeartWall = () => {
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
           {displayHearts.map((heart, index) => (
             <HeartCard
-              key={index}
+              key={heart.id || `demo-${index}`}
+              id={heart.id}
               name={heart.name}
               category={heart.category}
               message={heart.message}
