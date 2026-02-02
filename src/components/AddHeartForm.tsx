@@ -23,7 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const stripePromise = loadStripe("pk_live_51MOSNfF5cmmFi3mj550iCWkE5yGdp1JU7PdhP9Mrw7J11Ne2Zp1oTY70HYrMZvAfWrJhCAb9oSMSHebLlKSJ7rZH00nx8BGFza");
 
 const AddHeartForm = () => {
   const navigate = useNavigate();
