@@ -35,7 +35,7 @@ const StripePaymentForm = ({
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/thanks`,
+          return_url: `${window.location.origin}/thanks?payment_intent=${paymentIntentId}`,
         },
         redirect: "if_required",
       });

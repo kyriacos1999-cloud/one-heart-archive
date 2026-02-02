@@ -1,30 +1,56 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import HeartIcon from "@/components/HeartIcon";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Thanks() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const heartId = searchParams.get("heartId");
+  const paymentIntentId = searchParams.get("payment_intent");
   
   const [showHeart, setShowHeart] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
   const [showSubtext, setShowSubtext] = useState(false);
+  const [resolvedHeartId, setResolvedHeartId] = useState<string | null>(heartId);
+
+  useEffect(() => {
+    // If we have a payment_intent but no heartId, we need to confirm the payment and get the heartId
+    const confirmPaymentAndGetHeart = async () => {
+      if (paymentIntentId && !heartId) {
+        try {
+          const { data, error } = await supabase.functions.invoke("confirm-heart-payment", {
+            body: { paymentIntentId },
+          });
+
+          if (!error && data?.heartId) {
+            setResolvedHeartId(data.heartId);
+          }
+        } catch (err) {
+          console.error("Error confirming payment:", err);
+        }
+      }
+    };
+
+    confirmPaymentAndGetHeart();
+  }, [paymentIntentId, heartId]);
 
   useEffect(() => {
     // Staggered reveal animations
     setTimeout(() => setShowHeart(true), 300);
     setTimeout(() => setShowMessage(true), 1000);
     setTimeout(() => setShowSubtext(true), 1800);
+  }, []);
 
+  useEffect(() => {
     // Redirect to the heart share page after a moment (if we have an ID)
-    // Otherwise just stay on the thank you page
-    if (heartId) {
-      setTimeout(() => {
-        navigate(`/heart/${heartId}`);
+    if (resolvedHeartId) {
+      const timer = setTimeout(() => {
+        navigate(`/heart/${resolvedHeartId}`);
       }, 3500);
+      return () => clearTimeout(timer);
     }
-  }, [heartId, navigate]);
+  }, [resolvedHeartId, navigate]);
 
   return (
     <main className="min-h-screen flex items-center justify-center px-6 bg-background">
