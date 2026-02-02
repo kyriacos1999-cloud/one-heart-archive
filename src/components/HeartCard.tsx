@@ -61,13 +61,13 @@ const HeartCard = ({ id, name, category, message, date, className, style }: Hear
   const navigate = useNavigate();
   const colors = categoryColors[category] || categoryColors.romantic;
 
-  // Generate unique share URL if heart has an ID
+  // Generate unique share URL - for demo hearts, use a hash of the name as identifier
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
   const shareUrl = id ? `${baseUrl}/heart/${id}` : baseUrl;
-  const shareText = `${name} — a heart in the archive.`;
+  const shareText = `${name} — a heart on The Heart Wall.`;
   const fullShareText = message 
-    ? `${name}: "${message}" — a heart in the archive.`
-    : shareText;
+    ? `${name}: "${message}" — a heart on The Heart Wall. ${shareUrl}`
+    : `${shareText} ${shareUrl}`;
 
   const shareOnFacebook = () => {
     const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
@@ -155,50 +155,50 @@ const HeartCard = ({ id, name, category, message, date, className, style }: Hear
             </p>
           </div>
           
-          {/* Share options - only show if heart has ID */}
-          {id ? (
-            <div className="border-t border-border/30 pt-4 mt-2">
-              <p className="text-xs text-muted-foreground text-center mb-3">Share this heart</p>
-              <div className="flex justify-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={shareOnFacebook}
-                  className="text-muted-foreground hover:text-foreground"
-                  title="Share on Facebook"
-                >
-                  <Facebook className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={shareOnInstagram}
-                  className="text-muted-foreground hover:text-foreground"
-                  title="Share on Instagram"
-                >
-                  <Instagram className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={shareOnTikTok}
-                  className="text-muted-foreground hover:text-foreground"
-                  title="Share on TikTok"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-                  </svg>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={copyLink}
-                  className="text-muted-foreground hover:text-foreground"
-                  title="Copy link"
-                >
-                  {copied ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
-                </Button>
-              </div>
+          {/* Share options - show for all hearts */}
+          <div className="border-t border-border/30 pt-4 mt-2">
+            <p className="text-xs text-muted-foreground text-center mb-3">Share this heart</p>
+            <div className="flex justify-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={shareOnFacebook}
+                className="text-muted-foreground hover:text-foreground"
+                title="Share on Facebook"
+              >
+                <Facebook className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={shareOnInstagram}
+                className="text-muted-foreground hover:text-foreground"
+                title="Share on Instagram"
+              >
+                <Instagram className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={shareOnTikTok}
+                className="text-muted-foreground hover:text-foreground"
+                title="Share on TikTok"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                </svg>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={copyLink}
+                className="text-muted-foreground hover:text-foreground"
+                title="Copy link"
+              >
+                {copied ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
+              </Button>
+            </div>
+            {id && (
               <div className="text-center mt-4">
                 <Button
                   variant="link"
@@ -209,14 +209,8 @@ const HeartCard = ({ id, name, category, message, date, className, style }: Hear
                   View full page
                 </Button>
               </div>
-            </div>
-          ) : (
-            <div className="border-t border-border/30 pt-4 mt-2">
-              <p className="text-xs text-muted-foreground/50 text-center">
-                Demo heart
-              </p>
-            </div>
-          )}
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </>
