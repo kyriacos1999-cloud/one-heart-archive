@@ -137,6 +137,20 @@ const AddHeartForm = () => {
                   <span className="font-medium text-xs">{recipientEmail}</span>
                 </div>
               )}
+              <div className="border-t pt-2 mt-2">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Heart</span>
+                  <span className="font-medium">€1.00</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Service fee</span>
+                  <span className="font-medium">€0.30</span>
+                </div>
+                <div className="flex justify-between pt-2 border-t mt-2">
+                  <span className="font-medium">Total</span>
+                  <span className="font-medium">€1.30</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -159,14 +173,6 @@ const AddHeartForm = () => {
             />
           </Elements>
 
-          <div className="text-center mt-4 space-y-1">
-            <p className="text-sm text-foreground">
-              Total: <span className="font-medium">€1.30</span>
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Includes €0.30 service fee
-            </p>
-          </div>
 
           <Button
             variant="ghost"
