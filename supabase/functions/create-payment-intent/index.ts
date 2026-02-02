@@ -22,11 +22,10 @@ function validateName(name: unknown): string {
 }
 
 function validateCategory(category: unknown): string {
-  if (typeof category !== "string") {
-    throw new Error("Category is required");
-  }
+  if (!category) return "";
+  if (typeof category !== "string") return "";
   if (!VALID_CATEGORIES.includes(category as typeof VALID_CATEGORIES[number])) {
-    throw new Error("Invalid category");
+    return "";
   }
   return category;
 }
@@ -42,17 +41,16 @@ function validateMessage(message: unknown): string {
 }
 
 function validateDate(date: unknown): string {
-  if (typeof date !== "string") {
-    throw new Error("Date is required");
-  }
+  if (!date) return new Date().toISOString().split('T')[0];
+  if (typeof date !== "string") return new Date().toISOString().split('T')[0];
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    throw new Error("Invalid date format");
+    return new Date().toISOString().split('T')[0];
   }
   const parsedDate = new Date(date);
   const maxDate = new Date();
   maxDate.setFullYear(maxDate.getFullYear() + 1);
   if (parsedDate > maxDate) {
-    throw new Error("Date cannot be more than 1 year in the future");
+    return new Date().toISOString().split('T')[0];
   }
   return date;
 }

@@ -39,7 +39,7 @@ const AddHeartForm = () => {
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [isCreatingIntent, setIsCreatingIntent] = useState(false);
 
-  const isCurrentlyValid = name.trim() !== "" && category !== "";
+  const isCurrentlyValid = name.trim() !== "";
 
   const handleValidationError = () => {
     toast.error("Please fill in all required fields");
@@ -219,7 +219,8 @@ const AddHeartForm = () => {
 
           <div className="space-y-2">
             <Label htmlFor="category" className="text-sm font-medium">
-              Category
+              Category{" "}
+              <span className="text-muted-foreground font-normal">(optional)</span>
             </Label>
             <Select
               value={category}
@@ -239,7 +240,10 @@ const AddHeartForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Date</Label>
+            <Label className="text-sm font-medium">
+              Date{" "}
+              <span className="text-muted-foreground font-normal">(optional)</span>
+            </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
