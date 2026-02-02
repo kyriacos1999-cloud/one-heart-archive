@@ -82,7 +82,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Heart Wall <onboarding@resend.dev>",
+        from: "Heart Wall <noreply@theheartwall.com>",
         to: [recipientEmail],
         subject: "💕 Someone added a heart for you on Heart Wall!",
         html: `

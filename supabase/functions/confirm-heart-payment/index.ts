@@ -85,7 +85,7 @@ serve(async (req) => {
           const safeDate = escapeHtml(date);
 
           const emailPayload = {
-            from: "Heart Wall <onboarding@resend.dev>",
+            from: "Heart Wall <noreply@theheartwall.com>",
             to: [recipientEmail],
             subject: `💕 ${safeName} added a heart for you!`,
             html: `
