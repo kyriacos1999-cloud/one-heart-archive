@@ -43,14 +43,12 @@ export default function Thanks() {
   }, []);
 
   useEffect(() => {
-    // Redirect to the heart share page after a moment (if we have an ID)
-    if (resolvedHeartId) {
-      const timer = setTimeout(() => {
-        navigate(`/heart/${resolvedHeartId}`);
-      }, 3500);
-      return () => clearTimeout(timer);
-    }
-  }, [resolvedHeartId, navigate]);
+    // Redirect to the hearts archive after the thank you animation
+    const timer = setTimeout(() => {
+      navigate("/hearts");
+    }, 3500);
+    return () => clearTimeout(timer);
+  }, [navigate]);
 
   return (
     <main className="min-h-screen flex items-center justify-center px-6 bg-background">
