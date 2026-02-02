@@ -22,10 +22,11 @@ function validateName(name: unknown): string {
 }
 
 function validateCategory(category: unknown): string {
-  if (!category) return "";
-  if (typeof category !== "string") return "";
+  if (typeof category !== "string") {
+    throw new Error("Category is required");
+  }
   if (!VALID_CATEGORIES.includes(category as typeof VALID_CATEGORIES[number])) {
-    return "";
+    throw new Error("Invalid category");
   }
   return category;
 }
