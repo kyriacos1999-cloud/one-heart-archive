@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, ArrowLeft } from "lucide-react";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
@@ -16,67 +18,166 @@ import {
 } from "./ui/select";
 import { cn } from "@/lib/utils";
 import HeartIcon from "./HeartIcon";
+import StripePaymentForm from "./StripePaymentForm";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
-const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/9B6bJ13Am1xd935a2a3oA00";
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const AddHeartForm = () => {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [category, setCategory] = useState("");
   const [message, setMessage] = useState("");
   const [date, setDate] = useState<Date>(new Date());
   const [isFormValid, setIsFormValid] = useState(false);
+  
+  // Payment state
+  const [showPayment, setShowPayment] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [isCreatingIntent, setIsCreatingIntent] = useState(false);
 
-  // Optional: handle a canceled return (only if you configure Stripe to redirect back with ?payment=canceled)
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const paymentStatus = urlParams.get("payment");
-
-    if (paymentStatus === "canceled") {
-      toast.info("Payment was canceled");
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
-
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     const valid = name.trim() !== "" && category !== "";
     setIsFormValid(valid);
     return valid;
-  };
+  }, [name, category]);
 
   const handleValidationError = () => {
     toast.error("Please fill in all required fields");
   };
 
-  const handlePay = () => {
-    // Validate first
+  const handleProceedToPayment = async () => {
     if (!validateForm()) {
       handleValidationError();
       return;
     }
 
-    // Store pending heart data locally (so you can finalize it after payment later if you want)
-    const pendingHeart = {
-      name: name.trim(),
-      recipientEmail: recipientEmail.trim() || null,
-      category,
-      message: message.trim() || null,
-      date: format(date, "yyyy-MM-dd"),
-      createdAt: new Date().toISOString(),
-    };
+    setIsCreatingIntent(true);
 
     try {
-      localStorage.setItem("pendingHeart", JSON.stringify(pendingHeart));
-    } catch (e) {
-      // If localStorage fails, still allow payment
-      console.warn("Could not save pendingHeart to localStorage:", e);
-    }
+      const { data, error } = await supabase.functions.invoke("create-payment-intent", {
+        body: {
+          name: name.trim(),
+          category,
+          message: message.trim() || "",
+          date: format(date, "yyyy-MM-dd"),
+          recipientEmail: recipientEmail.trim() || "",
+        },
+      });
 
-    // Redirect to Stripe Payment Link
-    window.location.href = STRIPE_PAYMENT_LINK;
+      if (error) throw error;
+      if (!data?.clientSecret) throw new Error("Failed to create payment");
+
+      setClientSecret(data.clientSecret);
+      setPaymentIntentId(data.paymentIntentId);
+      setShowPayment(true);
+    } catch (err) {
+      console.error("Error creating payment intent:", err);
+      toast.error("Failed to initialize payment. Please try again.");
+    } finally {
+      setIsCreatingIntent(false);
+    }
   };
 
+  const handlePaymentSuccess = async () => {
+    if (!paymentIntentId) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke("confirm-heart-payment", {
+        body: { paymentIntentId },
+      });
+
+      if (error) throw error;
+
+      // Redirect to thanks page with the heart ID
+      navigate(`/thanks?heartId=${data.heartId}`);
+    } catch (err) {
+      console.error("Error confirming payment:", err);
+      // Payment succeeded but confirmation failed - still redirect
+      toast.success("Payment successful! Your heart has been added.");
+      navigate("/thanks");
+    }
+  };
+
+  const handlePaymentError = (errorMessage: string) => {
+    toast.error(errorMessage);
+  };
+
+  const handleBackToForm = () => {
+    setShowPayment(false);
+    setClientSecret(null);
+    setPaymentIntentId(null);
+  };
+
+  // Payment view with Stripe Elements
+  if (showPayment && clientSecret) {
+    return (
+      <section id="add-heart" className="py-32 px-4 sm:px-6 lg:px-8 bg-card">
+        <div className="max-w-md mx-auto">
+          <div className="text-center mb-8">
+            <HeartIcon className="w-8 h-8 mx-auto mb-6 opacity-60 animate-breathe" />
+            <h2 className="text-xl font-medium mb-2">Complete Your Heart</h2>
+            <p className="text-sm text-muted-foreground">
+              Secure payment powered by Stripe
+            </p>
+          </div>
+
+          <div className="bg-background rounded-lg p-6 mb-6 border">
+            <div className="text-sm space-y-2">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Name</span>
+                <span className="font-medium">{name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Category</span>
+                <span className="font-medium capitalize">{category}</span>
+              </div>
+              {recipientEmail && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Notify</span>
+                  <span className="font-medium text-xs">{recipientEmail}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <Elements
+            stripe={stripePromise}
+            options={{
+              clientSecret,
+              appearance: {
+                theme: "stripe",
+                variables: {
+                  colorPrimary: "#be123c",
+                },
+              },
+            }}
+          >
+            <StripePaymentForm
+              paymentIntentId={paymentIntentId!}
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+            />
+          </Elements>
+
+          <Button
+            variant="ghost"
+            className="w-full mt-4"
+            onClick={handleBackToForm}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to form
+          </Button>
+        </div>
+      </section>
+    );
+  }
+
+  // Form view
   return (
     <section id="add-heart" className="py-32 px-4 sm:px-6 lg:px-8 bg-card">
       <div className="max-w-md mx-auto">
@@ -99,7 +200,6 @@ const AddHeartForm = () => {
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
-                // validate in next tick so state updates first
                 setTimeout(validateForm, 0);
               }}
               onBlur={validateForm}
@@ -204,10 +304,10 @@ const AddHeartForm = () => {
 
             <Button
               className="w-full h-14 text-base"
-              disabled={!isFormValid}
-              onClick={handlePay}
+              disabled={!isFormValid || isCreatingIntent}
+              onClick={handleProceedToPayment}
             >
-              Place a heart — €1
+              {isCreatingIntent ? "Preparing payment..." : "Place a heart — €1"}
             </Button>
 
             <p className="text-center text-xs text-muted-foreground leading-relaxed">
