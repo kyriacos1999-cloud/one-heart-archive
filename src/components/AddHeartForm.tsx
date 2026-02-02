@@ -32,7 +32,6 @@ const AddHeartForm = () => {
   const [category, setCategory] = useState("");
   const [message, setMessage] = useState("");
   const [date, setDate] = useState<Date>(new Date());
-  const [isFormValid, setIsFormValid] = useState(false);
   
   // Payment state
   const [showPayment, setShowPayment] = useState(false);
@@ -40,18 +39,14 @@ const AddHeartForm = () => {
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [isCreatingIntent, setIsCreatingIntent] = useState(false);
 
-  const validateForm = useCallback(() => {
-    const valid = name.trim() !== "" && category !== "";
-    setIsFormValid(valid);
-    return valid;
-  }, [name, category]);
+  const isCurrentlyValid = name.trim() !== "" && category !== "";
 
   const handleValidationError = () => {
     toast.error("Please fill in all required fields");
   };
 
   const handleProceedToPayment = async () => {
-    if (!validateForm()) {
+    if (!isCurrentlyValid) {
       handleValidationError();
       return;
     }
@@ -198,11 +193,7 @@ const AddHeartForm = () => {
               type="text"
               placeholder="Emma & James"
               value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                setTimeout(validateForm, 0);
-              }}
-              onBlur={validateForm}
+              onChange={(e) => setName(e.target.value)}
               className="bg-background"
               required
             />
@@ -232,10 +223,7 @@ const AddHeartForm = () => {
             </Label>
             <Select
               value={category}
-              onValueChange={(value) => {
-                setCategory(value);
-                setTimeout(validateForm, 0);
-              }}
+              onValueChange={setCategory}
             >
               <SelectTrigger className="bg-background">
                 <SelectValue placeholder="Select a category" />
@@ -304,7 +292,7 @@ const AddHeartForm = () => {
 
             <Button
               className="w-full h-14 text-base"
-              disabled={!isFormValid || isCreatingIntent}
+              disabled={!isCurrentlyValid || isCreatingIntent}
               onClick={handleProceedToPayment}
             >
               {isCreatingIntent ? "Preparing payment..." : "Place a heart — €1"}
