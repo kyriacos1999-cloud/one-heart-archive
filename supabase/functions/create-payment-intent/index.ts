@@ -89,9 +89,9 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Create a PaymentIntent for €1 (100 cents)
+    // Create a PaymentIntent for €1.30 (130 cents = €1 + €0.30 service fee)
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 100,
+      amount: 130,
       currency: "eur",
       automatic_payment_methods: {
         enabled: true,
