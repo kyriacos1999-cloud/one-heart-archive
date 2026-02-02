@@ -298,11 +298,8 @@ const AddHeartForm = () => {
               disabled={!isCurrentlyValid || isCreatingIntent}
               onClick={handleProceedToPayment}
             >
-              {isCreatingIntent ? "Preparing payment..." : "Place a heart — €1.30"}
+              {isCreatingIntent ? "Preparing payment..." : "Place a heart — €1"}
             </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              Includes €0.30 service fee
-            </p>
 
             <p className="text-center text-xs text-muted-foreground leading-relaxed">
               It stays.

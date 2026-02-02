@@ -73,7 +73,7 @@ const StripePaymentForm = ({
             Processing...
           </>
         ) : (
-          "Pay €1.30"
+          "Pay €1"
         )}
       </Button>
     </form>
