@@ -159,6 +159,10 @@ const AddHeartForm = () => {
             />
           </Elements>
 
+          <p className="text-xs text-muted-foreground text-center mt-4">
+            Total: €1.30 (includes €0.30 processing fee)
+          </p>
+
           <Button
             variant="ghost"
             className="w-full mt-4"
