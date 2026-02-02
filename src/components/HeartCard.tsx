@@ -149,11 +149,13 @@ const HeartCard = ({ id, name, category, message, date, className, style }: Hear
               </p>
             )}
           </DialogHeader>
-          <div className="py-6">
-            <p className="text-center text-foreground/80 font-light leading-relaxed">
-              {message || "A heart full of love, placed here forever."}
-            </p>
-          </div>
+          {message && (
+            <div className="py-6">
+              <p className="text-center text-foreground/80 font-light leading-relaxed">
+                {message}
+              </p>
+            </div>
+          )}
           
           {/* Share options - show for all hearts */}
           <div className="border-t border-border/30 pt-4 mt-2">
