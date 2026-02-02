@@ -35,7 +35,8 @@ const StripePaymentForm = ({
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/thanks?payment_intent=${paymentIntentId}`,
+          // Use root return URL to avoid static hosting 404s on direct deep links (e.g. GitHub Pages)
+          return_url: `${window.location.origin}/?payment_intent=${encodeURIComponent(paymentIntentId)}`,
         },
         redirect: "if_required",
       });
