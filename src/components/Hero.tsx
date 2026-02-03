@@ -1,10 +1,7 @@
 import HeartIcon from "./HeartIcon";
 import { Button } from "./ui/button";
-import { useHeartCount } from "@/hooks/useHeartCount";
 
 const Hero = () => {
-  const { count } = useHeartCount();
-
   const scrollToForm = () => {
     document.getElementById("add-heart")?.scrollIntoView({ behavior: "smooth" });
   };
@@ -18,8 +15,14 @@ const Hero = () => {
           One Heart. One Euro. Forever.
         </h1>
         
-        <p className="mt-8 text-lg sm:text-xl text-muted-foreground font-light max-w-md mx-auto">
-          A permanent record that someone was loved.
+        <p className="mt-8 text-lg sm:text-xl text-muted-foreground font-light max-w-lg mx-auto leading-relaxed">
+          A quiet place to say: you mattered.
+        </p>
+        
+        <p className="mt-4 text-base text-foreground/60 font-light max-w-md mx-auto leading-relaxed">
+          Each heart placed here becomes a permanent record —
+          <br className="hidden sm:block" />
+          a name, a moment, left in stillness.
         </p>
         
         <p className="mt-12 text-base text-foreground/70 font-light italic">

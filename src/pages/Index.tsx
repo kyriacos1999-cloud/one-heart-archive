@@ -10,9 +10,9 @@ const Index = () => {
   return (
     <main className="min-h-screen bg-background">
       <Hero />
+      <MeaningSection />
       <HeartWall />
       <AddHeartForm />
-      <MeaningSection />
       <RulesSection />
       <GlobalProof />
       <Footer />
