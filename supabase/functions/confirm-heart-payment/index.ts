@@ -87,36 +87,45 @@ serve(async (req) => {
           const emailPayload = {
             from: "Heart Wall <noreply@theheartwall.com>",
             to: [recipientEmail],
-            subject: `💕 ${safeName} added a heart for you!`,
+            subject: `${safeName} placed a heart for you`,
             html: `
-              <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);">
-                <div style="text-align: center; margin-bottom: 30px;">
-                  <span style="font-size: 48px;">💕</span>
+              <div style="font-family: Georgia, 'Times New Roman', serif; max-width: 520px; margin: 0 auto; padding: 60px 40px; background-color: #FDFCFB;">
+                
+                <div style="text-align: center; margin-bottom: 48px;">
+                  <span style="font-size: 32px; opacity: 0.7;">♡</span>
                 </div>
-                <h1 style="text-align: center; color: #be123c; font-size: 28px; margin-bottom: 20px;">
-                  Someone special added a heart for you
+                
+                <h1 style="text-align: center; color: #1a1a1a; font-size: 24px; font-weight: 400; margin-bottom: 40px; letter-spacing: -0.01em;">
+                  A heart was placed for you
                 </h1>
-                <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                  <p style="color: #374151; font-size: 18px; line-height: 1.6; margin-bottom: 20px;">
-                    <strong>${safeName}</strong> has added a heart to the Heart Wall in your honor.
+                
+                <div style="text-align: center; padding: 0 20px;">
+                  <p style="color: #374151; font-size: 17px; line-height: 1.75; margin-bottom: 32px;">
+                    <strong style="font-weight: 600;">${safeName}</strong> added your name to the wall.<br>
+                    It's there now — quietly, permanently.
                   </p>
-                  <div style="background: #fef2f2; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                    <p style="color: #9f1239; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Category</p>
-                    <p style="color: #be123c; font-size: 18px; font-weight: 500;">${safeCategory}</p>
-                  </div>
+                  
+                  <p style="color: #6b7280; font-size: 15px; margin-bottom: 8px; font-style: italic;">
+                    For ${safeCategory.toLowerCase()}
+                  </p>
+                  
                   ${safeMessage ? `
-                    <div style="background: #fef2f2; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                      <p style="color: #9f1239; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Their Message</p>
-                      <p style="color: #374151; font-size: 16px; font-style: italic;">"${safeMessage}"</p>
-                    </div>
+                    <p style="color: #374151; font-size: 16px; line-height: 1.7; margin: 32px 0; padding: 0 10px;">
+                      "${safeMessage}"
+                    </p>
                   ` : ""}
-                  <p style="color: #6b7280; font-size: 14px; text-align: center;">
-                    Date: ${safeDate}
+                  
+                  <p style="color: #9ca3af; font-size: 13px; margin-top: 40px;">
+                    ${safeDate}
                   </p>
                 </div>
-                <p style="text-align: center; color: #9ca3af; font-size: 14px; margin-top: 30px;">
-                  Visit the Heart Wall to see all the love being shared.
-                </p>
+                
+                <div style="text-align: center; margin-top: 56px; padding-top: 32px; border-top: 1px solid #e5e5e5;">
+                  <p style="color: #9ca3af; font-size: 13px; letter-spacing: 0.02em;">
+                    It stays.
+                  </p>
+                </div>
+                
               </div>
             `,
           };
