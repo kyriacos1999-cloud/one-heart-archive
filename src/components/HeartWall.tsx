@@ -162,7 +162,7 @@ const HeartWall = () => {
         
         {/* Recency whisper */}
         {lastHeartTime && (
-          <p className="text-center mt-8 text-xs text-muted-foreground/40 font-light tracking-wide">
+          <p className="text-center mt-8 text-xs text-muted-foreground/80 font-light tracking-wide">
             Last heart placed: {formatDistanceToNow(lastHeartTime, { addSuffix: false })} ago
           </p>
         )}
