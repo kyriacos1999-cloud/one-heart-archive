@@ -16,26 +16,20 @@ const Hero = () => {
         </h1>
         
         <p className="mt-8 text-lg sm:text-xl text-muted-foreground font-light max-w-lg mx-auto leading-relaxed">
-          A quiet place to say: you mattered.
-        </p>
-        
-        <p className="mt-4 text-base text-foreground/60 font-light max-w-md mx-auto leading-relaxed">
-          Each heart placed here becomes a permanent record —
-          <br className="hidden sm:block" />
-          a name, a moment, left in stillness.
-        </p>
-        
-        <p className="mt-12 text-base text-foreground/70 font-light italic">
-          For someone. Or for yourself.
+          Name someone who mattered. Leave it here. Permanently.
         </p>
         
         <Button
           onClick={scrollToForm}
-          className="mt-8 px-10 py-6 text-base font-medium tracking-wide transition-transform duration-400 hover:scale-[1.02]"
+          className="mt-10 px-10 py-6 text-base font-medium tracking-wide transition-transform duration-400 hover:scale-[1.02]"
           size="lg"
         >
-          Place a heart — €1
+          Leave a heart
         </Button>
+        
+        <p className="mt-6 text-sm text-muted-foreground/70 font-light">
+          One name. One euro. No account needed.
+        </p>
         
       </div>
     </section>
