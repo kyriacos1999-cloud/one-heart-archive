@@ -106,7 +106,7 @@ serve(async (req) => {
       ],
       mode: "payment",
       payment_method_types: ["card", "apple_pay", "google_pay"],
-      success_url: `${req.headers.get("origin")}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${req.headers.get("origin")}/hearts?payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/?payment=canceled`,
       metadata: {
         name,
