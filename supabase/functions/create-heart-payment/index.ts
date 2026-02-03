@@ -62,12 +62,19 @@ function validateDate(date: unknown): string {
 function validateEmail(email: unknown): string {
   if (!email) return "";
   if (typeof email !== "string") return "";
-  const trimmed = email.trim();
+  let trimmed = email.trim();
   if (!trimmed) return "";
   // Basic email validation
   if (trimmed.length > 254) {
     throw new Error("Email must be 254 characters or less");
   }
+
+  // Handle common mobile autofill formats like: "Jane Doe <jane@example.com>"
+  const angleMatch = trimmed.match(/<([^>]+)>/);
+  if (angleMatch?.[1]) {
+    trimmed = angleMatch[1].trim();
+  }
+
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
     throw new Error("Invalid email format");
   }
