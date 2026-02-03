@@ -64,7 +64,17 @@ const AddHeartForm = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Provide the most actionable error message we can (esp. for mobile autofill issues)
+        const ctx = (error as unknown as { context?: { body?: unknown } }).context;
+        const ctxBody = ctx?.body as unknown;
+        const backendMsg =
+          (typeof ctxBody === "object" && ctxBody && "error" in ctxBody && typeof (ctxBody as any).error === "string")
+            ? (ctxBody as any).error
+            : undefined;
+
+        throw new Error(backendMsg || (error as Error).message || "Failed to create payment");
+      }
       if (!data?.clientSecret) throw new Error("Failed to create payment");
 
       setClientSecret(data.clientSecret);
@@ -72,7 +82,8 @@ const AddHeartForm = () => {
       setShowPayment(true);
     } catch (err) {
       console.error("Error creating payment intent:", err);
-      toast.error("Failed to initialize payment. Please try again.");
+      const msg = err instanceof Error ? err.message : "Failed to initialize payment. Please try again.";
+      toast.error(msg);
     } finally {
       setIsCreatingIntent(false);
     }
