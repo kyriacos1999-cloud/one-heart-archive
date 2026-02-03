@@ -82,40 +82,126 @@ const handler = async (req: Request): Promise<Response> => {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Heart Wall <noreply@theheartwall.com>",
+        from: "The Heart Wall <noreply@theheartwall.com>",
         to: [recipientEmail],
-        subject: "💕 Someone added a heart for you on Heart Wall!",
+        subject: "Someone placed a heart for you",
         html: `
           <!DOCTYPE html>
           <html>
           <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
-              body { font-family: Georgia, serif; background-color: #fdf8f6; padding: 40px; }
-              .container { max-width: 500px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-              .heart { font-size: 48px; text-align: center; margin-bottom: 20px; }
-              h1 { color: #1a1a1a; text-align: center; font-weight: 500; }
-              .details { background: #fdf8f6; padding: 20px; border-radius: 8px; margin: 20px 0; }
-              .label { color: #666; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
-              .value { color: #1a1a1a; font-size: 16px; margin-bottom: 12px; }
-              .message { font-style: italic; color: #444; padding: 16px; border-left: 3px solid #e8b4b4; margin: 20px 0; }
-              .footer { text-align: center; color: #888; font-size: 14px; margin-top: 30px; }
+              body { 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+                background-color: #FAF9F7; 
+                margin: 0;
+                padding: 40px 20px;
+                line-height: 1.6;
+              }
+              .container { 
+                max-width: 480px; 
+                margin: 0 auto; 
+                background: #ffffff; 
+                padding: 60px 40px; 
+                text-align: center;
+              }
+              .heart { 
+                color: #E8B4B4;
+                font-size: 32px; 
+                margin-bottom: 40px;
+                display: block;
+              }
+              h1 { 
+                font-family: 'Georgia', 'Times New Roman', serif;
+                color: #1a1a1a; 
+                font-weight: 400;
+                font-size: 24px;
+                margin: 0 0 32px 0;
+                letter-spacing: -0.02em;
+              }
+              .body-text {
+                color: #666666;
+                font-size: 16px;
+                margin: 0 0 12px 0;
+              }
+              .sender-name {
+                color: #1a1a1a;
+                font-weight: 500;
+              }
+              .message-block {
+                margin: 32px 0;
+                padding: 24px 0;
+                border-top: 1px solid #f0f0f0;
+                border-bottom: 1px solid #f0f0f0;
+              }
+              .message-text {
+                font-family: 'Georgia', 'Times New Roman', serif;
+                font-style: italic;
+                color: #444444;
+                font-size: 16px;
+                margin: 0;
+              }
+              .cta-button {
+                display: inline-block;
+                margin-top: 32px;
+                padding: 14px 28px;
+                background-color: #1a1a1a;
+                color: #ffffff !important;
+                text-decoration: none;
+                font-size: 14px;
+                letter-spacing: 0.02em;
+              }
+              .cta-button:hover {
+                background-color: #333333;
+              }
+              .footer {
+                margin-top: 48px;
+                padding-top: 32px;
+                border-top: 1px solid #f0f0f0;
+              }
+              .footer-text {
+                color: #999999;
+                font-size: 13px;
+                margin: 0 0 4px 0;
+              }
+              .footer-tagline {
+                color: #bbbbbb;
+                font-size: 12px;
+                margin: 12px 0 0 0;
+                font-style: italic;
+              }
+              .footer-link {
+                color: #999999;
+                text-decoration: none;
+                font-size: 12px;
+              }
             </style>
           </head>
           <body>
             <div class="container">
-              <div class="heart">💕</div>
-              <h1>A Heart Was Added For You</h1>
-              <div class="details">
-                <div class="label">From</div>
-                <div class="value">${safeSenderName}</div>
-                <div class="label">Category</div>
-                <div class="value" style="text-transform: capitalize;">${safeCategory}</div>
-                <div class="label">Date</div>
-                <div class="value">${safeDate}</div>
-              </div>
-              ${safeMessage ? `<div class="message">"${safeMessage}"</div>` : ''}
+              <span class="heart">♥</span>
+              
+              <h1>Someone placed a heart for you.</h1>
+              
+              <p class="body-text">
+                <span class="sender-name">${safeSenderName}</span> added your name to the wall.
+              </p>
+              <p class="body-text">
+                It's there now — quietly, permanently.
+              </p>
+              
+              ${safeMessage ? `
+                <div class="message-block">
+                  <p class="message-text">"${safeMessage}"</p>
+                </div>
+              ` : ''}
+              
+              <a href="https://theheartwall.com/hearts" class="cta-button">See the wall →</a>
+              
               <div class="footer">
-                <p>Visit Heart Wall to see all the hearts ❤️</p>
+                <p class="footer-text">This heart is part of a permanent public archive.</p>
+                <p class="footer-tagline">One name. One heart. Forever.</p>
               </div>
             </div>
           </body>
