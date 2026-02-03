@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import HeartCard from "./HeartCard";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { useHeartCount } from "@/hooks/useHeartCount";
 import { demoHearts } from "@/data/demoHearts";
 
@@ -21,6 +21,8 @@ const GOAL = 1_000_000;
 
 const HeartWall = () => {
   const [dbHearts, setDbHearts] = useState<Heart[]>([]);
+  const [lastHeartTime, setLastHeartTime] = useState<Date | null>(null);
+  const [, setTick] = useState(0); // For re-rendering relative time
   const { count: totalCount } = useHeartCount();
   const [animatedCount, setAnimatedCount] = useState(0);
 
@@ -34,6 +36,10 @@ const HeartWall = () => {
       
       if (!error && data) {
         setDbHearts(data);
+        // Set the most recent heart's timestamp
+        if (data.length > 0 && data[0].created_at) {
+          setLastHeartTime(new Date(data[0].created_at));
+        }
       }
     };
 
@@ -46,7 +52,14 @@ const HeartWall = () => {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "hearts" },
         (payload) => {
-          setDbHearts((prev) => [payload.new as Heart, ...prev].slice(0, 18));
+          const newHeart = payload.new as Heart & { created_at?: string };
+          setDbHearts((prev) => [newHeart, ...prev].slice(0, 18));
+          // Update last heart time on new inserts
+          if (newHeart.created_at) {
+            setLastHeartTime(new Date(newHeart.created_at));
+          } else {
+            setLastHeartTime(new Date());
+          }
         }
       )
       .subscribe();
@@ -54,6 +67,14 @@ const HeartWall = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+  }, []);
+
+  // Update relative time display every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick((t) => t + 1);
+    }, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   // Animate the counter
@@ -139,7 +160,14 @@ const HeartWall = () => {
           ))}
         </div>
         
-        <div className="text-center mt-10">
+        {/* Recency whisper */}
+        {lastHeartTime && (
+          <p className="text-center mt-8 text-xs text-muted-foreground/40 font-light tracking-wide">
+            Last heart placed: {formatDistanceToNow(lastHeartTime, { addSuffix: false })} ago
+          </p>
+        )}
+        
+        <div className="text-center mt-6">
           <Button asChild variant="outline" className="gap-2">
             <Link to="/hearts">
               View All Hearts
