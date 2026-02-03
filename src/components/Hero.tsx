@@ -16,7 +16,7 @@ const Hero = () => {
         </h1>
         
         <p className="mt-8 text-lg sm:text-xl text-muted-foreground font-light max-w-lg mx-auto leading-relaxed">
-          Name someone who mattered. Leave it here. Permanently.
+          A permanent mark for someone who mattered.
         </p>
         
         <Button
@@ -24,11 +24,11 @@ const Hero = () => {
           className="mt-10 px-10 py-6 text-base font-medium tracking-wide transition-transform duration-400 hover:scale-[1.02]"
           size="lg"
         >
-          Leave a heart
+          Place a heart
         </Button>
         
-        <p className="mt-6 text-sm text-muted-foreground/70 font-light">
-          One name. One euro. No account needed.
+        <p className="mt-6 text-sm text-muted-foreground/60 font-light">
+          The euro is symbolic. The heart is what remains.
         </p>
         
       </div>
