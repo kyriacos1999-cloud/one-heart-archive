@@ -43,7 +43,7 @@ serve(async (req) => {
     }
 
     // Extract heart data from metadata
-    const { name, category, message, date, recipientEmail } = paymentIntent.metadata;
+    const { name, senderName, category, message, date, recipientEmail } = paymentIntent.metadata;
 
     if (!name || !category) {
       throw new Error("Missing required metadata");
@@ -80,14 +80,25 @@ serve(async (req) => {
       if (resendApiKey) {
         try {
           const safeName = escapeHtml(name);
+          const safeSenderName = senderName ? escapeHtml(senderName) : "";
           const safeCategory = escapeHtml(category.charAt(0).toUpperCase() + category.slice(1));
           const safeMessage = message ? escapeHtml(message) : "";
           const safeDate = escapeHtml(date);
 
+          // Build the "placed by" line — use sender name if provided, otherwise anonymous
+          const placedByLine = safeSenderName
+            ? `<strong style="font-weight: 600;">${safeSenderName}</strong> placed a heart for you.`
+            : `Someone placed a heart for you.`;
+
+          // Subject line uses sender name if available
+          const subjectLine = safeSenderName
+            ? `${safeSenderName} placed a heart for you`
+            : `A heart was placed for you`;
+
           const emailPayload = {
             from: "Heart Wall <noreply@theheartwall.com>",
             to: [recipientEmail],
-            subject: `${safeName} placed a heart for you`,
+            subject: subjectLine,
             html: `
               <div style="font-family: Georgia, 'Times New Roman', serif; max-width: 520px; margin: 0 auto; padding: 60px 40px; background-color: #FDFCFB;">
                 
@@ -96,13 +107,13 @@ serve(async (req) => {
                 </div>
                 
                 <h1 style="text-align: center; color: #1a1a1a; font-size: 24px; font-weight: 400; margin-bottom: 40px; letter-spacing: -0.01em;">
-                  A heart was placed for you
+                  ${safeName}, a heart is here for you
                 </h1>
                 
                 <div style="text-align: center; padding: 0 20px;">
                   <p style="color: #374151; font-size: 17px; line-height: 1.75; margin-bottom: 32px;">
-                    <strong style="font-weight: 600;">${safeName}</strong> added your name to the wall.<br>
-                    It's there now — quietly, permanently.
+                    ${placedByLine}<br>
+                    It's on the wall now — quietly, permanently.
                   </p>
                   
                   <p style="color: #6b7280; font-size: 15px; margin-bottom: 8px; font-style: italic;">

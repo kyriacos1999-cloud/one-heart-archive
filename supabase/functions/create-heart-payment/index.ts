@@ -92,6 +92,7 @@ serve(async (req) => {
     
     // Validate all inputs
     const name = validateName(body.name);
+    const senderName = body.senderName && typeof body.senderName === "string" ? body.senderName.trim().slice(0, 100) : "";
     const category = validateCategory(body.category);
     const message = validateMessage(body.message);
     const date = validateDate(body.date);
@@ -117,6 +118,7 @@ serve(async (req) => {
       cancel_url: `${req.headers.get("origin")}/?payment=canceled`,
       metadata: {
         name,
+        senderName,
         category,
         message,
         date,

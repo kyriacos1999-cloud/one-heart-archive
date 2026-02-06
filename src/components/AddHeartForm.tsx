@@ -28,6 +28,7 @@ const stripePromise = loadStripe("pk_live_51MOSNfF5cmmFi3mj550iCWkE5yGdp1JU7PdhP
 const AddHeartForm = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
+  const [senderName, setSenderName] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [category, setCategory] = useState("");
   const [message, setMessage] = useState("");
@@ -57,6 +58,7 @@ const AddHeartForm = () => {
       const { data, error } = await supabase.functions.invoke("create-payment-intent", {
         body: {
           name: name.trim(),
+          senderName: senderName.trim() || "",
           category,
           message: message.trim() || "",
           date: format(date, "yyyy-MM-dd"),
@@ -202,12 +204,12 @@ const AddHeartForm = () => {
         <div className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-medium">
-              Name(s)
+              Name on the heart
             </Label>
             <Input
               id="name"
               type="text"
-              placeholder="Emma & James"
+              placeholder="The person this heart is for"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="bg-background"
@@ -216,8 +218,23 @@ const AddHeartForm = () => {
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="senderName" className="text-sm font-medium">
+              Your name{" "}
+              <span className="text-muted-foreground font-normal">(optional)</span>
+            </Label>
+            <Input
+              id="senderName"
+              type="text"
+              placeholder="So they know who placed it"
+              value={senderName}
+              onChange={(e) => setSenderName(e.target.value)}
+              className="bg-background"
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="recipientEmail" className="text-sm font-medium">
-              Recipient Email{" "}
+              Recipient email{" "}
               <span className="text-muted-foreground font-normal">(optional)</span>
             </Label>
             <Input
